@@ -1,6 +1,7 @@
+*-api.yml
+application.yml
 HELP.m
 .gradle
-application.yml
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
