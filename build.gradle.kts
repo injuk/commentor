@@ -28,7 +28,7 @@ repositories {
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
-    implementation("org.springframework.boot:spring-boot-starter-validation:2.7.9")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 
     implementation("org.jetbrains.kotlin:kotlin-reflect")
@@ -51,10 +51,10 @@ dependencies {
     testImplementation("com.ninja-squad:springmockk:3.1.1")
 
     //    jooq
-//    implementation("org.springframework.boot:spring-boot-starter-jooq")
-//    implementation("org.jooq:jooq:3.16.6")
-//    jooqGenerator("org.postgresql:postgresql:42.3.4")
-//    runtimeOnly("org.postgresql:postgresql")
+    implementation("org.springframework.boot:spring-boot-starter-jooq")
+    implementation("org.jooq:jooq:3.16.6")
+    jooqGenerator("org.postgresql:postgresql:42.3.4")
+    runtimeOnly("org.postgresql:postgresql")
 
     implementation("org.hashids:hashids:1.0.3")
 }
@@ -94,51 +94,51 @@ openApiGenerate {
     generateModelDocumentation.set(false)
 }
 
-//jooq {
-//    version.set("3.15.5")
-//    edition.set(nu.studer.gradle.jooq.JooqEdition.OSS)
-//
-//    configurations {
-//        create("main") {
-//            generateSchemaSourceOnCompilation.set(false)
-//            jooqConfiguration.apply {
-//                logging = org.jooq.meta.jaxb.Logging.INFO
-//                jdbc.apply {
-//                    driver = "org.postgresql.Driver"
-//                    url = "jdbc:postgresql://127.0.0.1:35432/commentor"
-//                    user = "postgres"
-//                    password = "my-first-nest-pw"
-//                }
-//                generator.apply {
-//                    name = "org.jooq.codegen.KotlinGenerator"
-//                    database.apply {
-//                        name = "org.jooq.meta.postgres.PostgresDatabase"
-//                        inputSchema = System.getenv("COMMENTOR_SCHEMA")
-//                        excludes = "flyway_schema_history.*"
-//                    }
-//                    generate.apply {
-//                        isDeprecated = false
-//                        isRecords = true
-//                        isImmutablePojos = false
-//                        isFluentSetters = false
-//                    }
-//                    target.apply {
-//                        packageName = "com.mzc.cloudplex.download.persistence.jooq"
-//                        directory = "$buildDir/generated/jooq/src/main/jooq"
-//                    }
-//                    strategy.name = "org.jooq.codegen.DefaultGeneratorStrategy"
-//                }
-//            }
-//        }
-//    }
-//}
+jooq {
+    version.set("3.15.5")
+    edition.set(nu.studer.gradle.jooq.JooqEdition.OSS)
+
+    configurations {
+        create("main") {
+            generateSchemaSourceOnCompilation.set(false)
+            jooqConfiguration.apply {
+                logging = org.jooq.meta.jaxb.Logging.INFO
+                jdbc.apply {
+                    driver = "org.postgresql.Driver"
+                    url = "jdbc:postgresql://127.0.0.1:35432/commentor"
+                    user = "postgres"
+                    password = "my-first-nest-pw"
+                }
+                generator.apply {
+                    name = "org.jooq.codegen.KotlinGenerator"
+                    database.apply {
+                        name = "org.jooq.meta.postgres.PostgresDatabase"
+                        inputSchema = System.getenv("COMMENTOR_SCHEMA")
+                        excludes = "flyway_schema_history.*"
+                    }
+                    generate.apply {
+                        isDeprecated = false
+                        isRecords = true
+                        isImmutablePojos = false
+                        isFluentSetters = false
+                    }
+                    target.apply {
+                        packageName = "com.mzc.cloudplex.download.persistence.jooq"
+                        directory = "$buildDir/generated/jooq/src/main/jooq"
+                    }
+                    strategy.name = "org.jooq.codegen.DefaultGeneratorStrategy"
+                }
+            }
+        }
+    }
+}
 
 kotlin {
     sourceSets["main"].apply {
         kotlin.srcDirs(
             listOf(
                 "$buildDir/generated/openapi/src/main",
-//                "$buildDir/generated/jooq/src/main/jooq",
+                "$buildDir/generated/jooq/src/main/jooq",
             )
         )
     }
