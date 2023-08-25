@@ -1,12 +1,22 @@
-package ga.injuk.commentor.adapter.`in`.web
+package ga.injuk.commentor.adapter.`in`.rest
 
+import ga.injuk.commentor.application.port.`in`.CreateCommentUseCase
 import ga.injuk.commentor.models.*
 import ga.injuk.commentor.operations.CommentApi
+import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-class CommentorController: CommentApi {
+class CommentorController(
+    private val createCommentUseCase: CreateCommentUseCase,
+): CommentApi {
+    init {
+        LoggerFactory
+            .getLogger(this.javaClass)
+            .debug("createCommentUseCase={}", createCommentUseCase.javaClass)
+    }
+
     override fun createComment(
         authorization: String,
         projectId: String,
