@@ -23,6 +23,8 @@ class CommentorController(
         organizationId: String?,
         createCommentRequest: CreateCommentRequest?
     ): ResponseEntity<CreateCommentResponse> {
+        // TODO: Request라는 클래스를 정의해서, Request(user, context).use(usecase).run() 식으로 작성해보자
+        // authorization, projectId, organizationId로 User를 만듬
         return super.createComment(authorization, projectId, organizationId, createCommentRequest)
     }
 

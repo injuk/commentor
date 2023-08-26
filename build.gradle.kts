@@ -16,6 +16,7 @@ group = "ga.injuk"
 version = "0.0.1-SNAPSHOT"
 
 val kotestVersion = "5.5.5"
+val testContainersVersion = "1.18.0"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -50,7 +51,11 @@ dependencies {
     testImplementation("io.mockk:mockk:1.13.5")
     testImplementation("com.ninja-squad:springmockk:3.1.1")
 
-    //    jooq
+    // test containters
+    testImplementation("org.testcontainers:testcontainers:$testContainersVersion")
+    testImplementation("org.testcontainers:postgresql:$testContainersVersion")
+
+    // jooq
     implementation("org.springframework.boot:spring-boot-starter-jooq")
     implementation("org.jooq:jooq:3.16.6")
     jooqGenerator("org.postgresql:postgresql:42.3.4")
