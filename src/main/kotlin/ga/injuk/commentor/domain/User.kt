@@ -1,5 +1,8 @@
 package ga.injuk.commentor.domain
 
+import ga.injuk.commentor.domain.model.Organization
+import ga.injuk.commentor.domain.model.Project
+
 data class User(
     val id: String,
     val authorization: String,

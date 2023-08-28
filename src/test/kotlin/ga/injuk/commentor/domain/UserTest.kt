@@ -1,5 +1,7 @@
 package ga.injuk.commentor.domain
 
+import ga.injuk.commentor.domain.model.Organization
+import ga.injuk.commentor.domain.model.Project
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 

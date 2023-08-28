@@ -1,9 +1,8 @@
 package ga.injuk.commentor.domain
 
+import ga.injuk.commentor.domain.RequestContext
 import io.kotest.core.spec.style.BehaviorSpec
-import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldHave
 import java.util.UUID
 
 class RequestContextTest : BehaviorSpec() {
