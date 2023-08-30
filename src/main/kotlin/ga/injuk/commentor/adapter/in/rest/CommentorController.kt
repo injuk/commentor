@@ -1,5 +1,6 @@
 package ga.injuk.commentor.adapter.`in`.rest
 
+import ga.injuk.commentor.adapter.extension.convert
 import ga.injuk.commentor.application.port.dto.Resource
 import ga.injuk.commentor.application.port.`in`.CreateCommentUseCase
 import ga.injuk.commentor.domain.User
@@ -29,9 +30,6 @@ class CommentorController(
         organizationId: String?,
         createCommentRequest: CreateCommentRequest?
     ): ResponseEntity<CreateCommentResponse> {
-        // TODO: Request라는 클래스를 정의해서, Request(user, context).use(usecase).run() 식으로 작성해보자
-        // authorization, projectId, organizationId로 User를 만듬
-
         val user = User.builder()
             .setAuthorization(authorization)
             .setProject(projectId)
@@ -39,26 +37,7 @@ class CommentorController(
             .build()
         val result = createCommentUseCase.execute(
             user = user,
-            data = ga.injuk.commentor.application.port.dto.request.CreateCommentRequest(
-                domain = createCommentRequest!!.domain,
-                resource = Resource(
-                    id = createCommentRequest.resource.id ?: throw RuntimeException("resource id is required"),
-                ),
-                parts = listOf(
-                    CommentPart(
-                        type = CommentPartType.HEADING,
-                        attrs = null,
-                        content = listOf(
-                            Content(
-                                type = ContentType.TEXT,
-                                text = "test",
-                                marks = null,
-                                attrs = null,
-                            )
-                        )
-                    )
-                )
-            )
+            data = createCommentRequest?.convert()
         )
 
         return ResponseEntity.ok(

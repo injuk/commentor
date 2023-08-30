@@ -6,5 +6,5 @@ import ga.injuk.commentor.domain.model.CommentPart
 data class CreateCommentRequest(
     val domain: String?,
     val resource: Resource,
-    val parts: List<CommentPart>,
+    val parts: List<CommentPart>?,
 )

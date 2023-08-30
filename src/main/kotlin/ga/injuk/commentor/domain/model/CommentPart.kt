@@ -6,6 +6,6 @@ data class CommentPart(
     val content: List<Content>,
 ) {
     data class Attrs(
-        val level: Int?,
+        val level: Long?,
     )
 }

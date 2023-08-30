@@ -11,8 +11,11 @@ import org.springframework.stereotype.Service
 class CreateCommentCommand(
     private val commentAccessPort: CommentAccessPort,
 ): CreateCommentUseCase {
-    override fun execute(user: User, data: CreateCommentRequest): CreateCommentResponse? {
-        val result = commentAccessPort.create(user, data)
+    override fun execute(user: User, data: CreateCommentRequest?): CreateCommentResponse? {
+        val result = commentAccessPort.create(
+            user = user,
+            request = data ?: throw RuntimeException("데이터 없음")
+        )
 
         // TODO: result를 문자열로 변환할 수 있도록 수정
         return CreateCommentResponse(
