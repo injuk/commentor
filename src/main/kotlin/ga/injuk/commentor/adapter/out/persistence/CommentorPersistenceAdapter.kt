@@ -1,7 +1,7 @@
 package ga.injuk.commentor.adapter.out.persistence
 
 import ga.injuk.commentor.application.port.dto.request.CreateCommentRequest
-import ga.injuk.commentor.application.port.out.persistence.CommentAccessPort
+import ga.injuk.commentor.application.port.out.persistence.CreateCommentPort
 import ga.injuk.commentor.common.annotation.Adapter
 import ga.injuk.commentor.domain.User
 import org.slf4j.LoggerFactory
@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory
 @Adapter
 class CommentorPersistenceAdapter(
     private val commentorRepository: CommentorRepository,
-): CommentAccessPort {
+): CreateCommentPort {
     init {
         LoggerFactory
             .getLogger(this.javaClass)
