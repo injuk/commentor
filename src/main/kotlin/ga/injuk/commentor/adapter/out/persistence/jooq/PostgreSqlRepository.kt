@@ -14,9 +14,10 @@ class PostgreSqlRepository(
     private val dsl: DSLContext,
 ): CommentorRepository {
 
-    override fun insert(user: User, request: CreateCommentRequest): Long? {
-        val result = dsl.run {
-            insertInto(COMMENTS)
+    override fun insert(user: User, request: CreateCommentRequest): Long?
+        = dsl.transactionResult { trx ->
+            trx.dsl()
+                .insertInto(COMMENTS)
                 .set(COMMENTS.ORG_ID, user.district.organization?.id)
                 .set(COMMENTS.PROJECT_ID, user.district.project.id)
                 .set(COMMENTS.DOMAIN, request.domain)
@@ -25,8 +26,6 @@ class PostgreSqlRepository(
                 .set(COMMENTS.CREATED_BY_ID, user.id)
                 .set(COMMENTS.UPDATED_BY_ID, user.id)
                 .returningResult(COMMENTS.ID)
-        }.single().getValue(COMMENTS.ID)
 
-        return result
-    }
+        }.single().getValue(COMMENTS.ID)
 }
