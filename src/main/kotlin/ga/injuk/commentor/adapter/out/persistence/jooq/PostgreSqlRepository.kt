@@ -4,7 +4,9 @@ import com.mzc.cloudplex.download.persistence.jooq.tables.references.COMMENTS
 import ga.injuk.commentor.adapter.extension.convertToJooqJson
 import ga.injuk.commentor.adapter.out.persistence.CommentorRepository
 import ga.injuk.commentor.application.port.dto.request.CreateCommentRequest
+import ga.injuk.commentor.application.port.dto.request.ListCommentsRequest
 import ga.injuk.commentor.domain.User
+import ga.injuk.commentor.domain.model.Comment
 import org.jooq.DSLContext
 import org.jooq.JSON
 import org.springframework.stereotype.Repository
@@ -28,4 +30,14 @@ class PostgreSqlRepository(
                 .returningResult(COMMENTS.ID)
 
         }.single().getValue(COMMENTS.ID)
+
+    override fun findBy(user: User, request: ListCommentsRequest): List<Comment> {
+//        val result = dsl.run {
+//            select(
+//
+//            )
+//        }
+
+        return emptyList()
+    }
 }

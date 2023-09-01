@@ -2,7 +2,9 @@ package ga.injuk.commentor.adapter.`in`.rest
 
 import ga.injuk.commentor.adapter.extension.convert
 import ga.injuk.commentor.application.port.dto.Resource
+import ga.injuk.commentor.application.port.dto.request.ListCommentsRequest
 import ga.injuk.commentor.application.port.`in`.CreateCommentUseCase
+import ga.injuk.commentor.application.port.`in`.ListCommentsUseCase
 import ga.injuk.commentor.domain.User
 import ga.injuk.commentor.domain.model.CommentPart
 import ga.injuk.commentor.domain.model.CommentPartType
@@ -17,11 +19,13 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 class CommentorController(
     private val createCommentUseCase: CreateCommentUseCase,
+    private val listCommentsUseCase: ListCommentsUseCase,
 ): CommentApi {
     init {
         LoggerFactory
             .getLogger(this.javaClass)
-            .debug("createCommentUseCase={}", createCommentUseCase.javaClass)
+//            .debug("createCommentUseCase={}", createCommentUseCase.javaClass)
+            .debug("listCommentsUseCase={}", listCommentsUseCase.javaClass)
     }
 
     override fun createComment(
@@ -56,7 +60,27 @@ class CommentorController(
         domain: String?,
         resourceId: String?
     ): ResponseEntity<ListCommentsResponse> {
-        return super.listComments(authorization, projectId, limit, nextCursor, organizationId, domain, resourceId)
+        val user = User.builder()
+            .setAuthorization(authorization)
+            .setProject(projectId)
+            .setOrganization(organizationId)
+            .build()
+        val result = listCommentsUseCase.execute(
+            user = user,
+            data = ListCommentsRequest(
+                limit = limit?.toLong(),
+                nextCursor = nextCursor,
+//                domain = domain,
+                resource = resourceId?.let { Resource(resourceId) }
+            )
+        )
+        println(result)
+        return ResponseEntity.ok(
+            ListCommentsResponse(
+                results = emptyList(),
+                nextCursor = null,
+            )
+        )
     }
 
     override fun listSubComments(
