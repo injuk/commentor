@@ -1,7 +1,9 @@
 package ga.injuk.commentor.application.query
 
+import ga.injuk.commentor.application.port.dto.IdEncodedComment
 import ga.injuk.commentor.application.port.dto.Pagination
 import ga.injuk.commentor.application.port.dto.request.ListCommentsRequest
+import ga.injuk.commentor.application.port.dto.response.ListCommentsResponse
 import ga.injuk.commentor.application.port.`in`.ListCommentsUseCase
 import ga.injuk.commentor.application.port.out.persistence.ListCommentsPort
 import ga.injuk.commentor.common.IdConverter
@@ -15,16 +17,20 @@ class ListCommentsQuery(
     private val listCommentsPort: ListCommentsPort,
 ): ListCommentsUseCase {
 
-    override fun execute(user: User, data: ListCommentsRequest?): Pagination<Comment>? {
+    override fun execute(user: User, data: ListCommentsRequest?): ListCommentsResponse {
         // TODO: 반환된 결과의 id는 모두 인코딩해야 함
         val results = listCommentsPort.getList(
             user = user,
             request = data ?: ListCommentsRequest()
         )
 
-        return Pagination(
-            results = results,
-            nextCursor = null,
+        return ListCommentsResponse(
+            Pagination(
+                results = results.map {
+                    IdEncodedComment.of(idConverter.encode(it.id), it)
+                },
+                nextCursor = null,
+            )
         )
     }
 }

@@ -3,12 +3,12 @@ package ga.injuk.commentor.domain.model
 import java.time.LocalDateTime
 
 data class Comment(
-    val id: String,
+    val id: Long,
     val parts: List<CommentPart>,
     val isDeleted: Boolean,
     val hasSubComments: Boolean,
-    val likeCount: Int,
-    val dislikeCount: Int,
+    val likeCount: Long,
+    val dislikeCount: Long,
     val created: Context,
     val updated: Context,
 ) {

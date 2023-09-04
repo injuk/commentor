@@ -1,16 +1,20 @@
 package ga.injuk.commentor.adapter.`in`.rest
 
 import ga.injuk.commentor.adapter.extension.convert
+import ga.injuk.commentor.adapter.extension.toOffsetDateTime
 import ga.injuk.commentor.application.port.dto.Resource
 import ga.injuk.commentor.application.port.dto.request.ListCommentsRequest
 import ga.injuk.commentor.application.port.`in`.CreateCommentUseCase
 import ga.injuk.commentor.application.port.`in`.ListCommentsUseCase
 import ga.injuk.commentor.domain.User
+import ga.injuk.commentor.domain.model.*
 import ga.injuk.commentor.domain.model.CommentPart
 import ga.injuk.commentor.domain.model.CommentPartType
 import ga.injuk.commentor.domain.model.Content
 import ga.injuk.commentor.domain.model.ContentType
 import ga.injuk.commentor.models.*
+import ga.injuk.commentor.models.By
+import ga.injuk.commentor.models.Comment
 import ga.injuk.commentor.operations.CommentApi
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
@@ -65,20 +69,40 @@ class CommentorController(
             .setProject(projectId)
             .setOrganization(organizationId)
             .build()
-        val result = listCommentsUseCase.execute(
+        val (results, nextCursor) = listCommentsUseCase.execute(
             user = user,
             data = ListCommentsRequest(
                 limit = limit?.toLong(),
                 nextCursor = nextCursor,
-//                domain = domain,
+                domain = when(domain) {
+                    "ARTICLE" -> CommentDomain.ARTICLE
+                    else -> CommentDomain.NONE
+                },
                 resource = resourceId?.let { Resource(resourceId) }
             )
-        )
-        println(result)
+        ).data
+
         return ResponseEntity.ok(
             ListCommentsResponse(
-                results = emptyList(),
-                nextCursor = null,
+                results = results.map {
+                    Comment(
+                        id = it.id,
+                        parts = emptyList(),
+                        isDeleted = it.isDeleted,
+                        hasSubComments = it.hasSubComments,
+                        likeCount = it.likeCount,
+                        dislikeCount = it.dislikeCount,
+                        created = CommentCreated(
+                            at = it.created.at.toOffsetDateTime(),
+                            by = By(it.created.by.id)
+                        ),
+                        updated = CommentUpdated(
+                            at = it.updated.at.toOffsetDateTime(),
+                            by = By(it.updated.by.id)
+                        )
+                    )
+                },
+                nextCursor = nextCursor,
             )
         )
     }
