@@ -1,5 +1,7 @@
 package ga.injuk.commentor.adapter.out.persistence.jooq
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.mzc.cloudplex.download.persistence.jooq.tables.references.COMMENTS
 import ga.injuk.commentor.adapter.extension.convertToJooqJson
 import ga.injuk.commentor.adapter.out.persistence.CommentorRepository
@@ -8,7 +10,9 @@ import ga.injuk.commentor.application.port.dto.request.ListCommentsRequest
 import ga.injuk.commentor.domain.User
 import ga.injuk.commentor.domain.model.By
 import ga.injuk.commentor.domain.model.Comment
+import ga.injuk.commentor.domain.model.CommentPart
 import org.jooq.DSLContext
+import org.jooq.JSON
 import org.jooq.impl.DSL.*
 import org.springframework.stereotype.Repository
 
@@ -35,23 +39,25 @@ class PostgreSqlRepository(
     override fun findBy(user: User, request: ListCommentsRequest): List<Comment> {
         val result = dsl.run {
             val c = COMMENTS.`as`("c")
-            val cIdField = c.ID.`as`("id")
-
             val sc = COMMENTS.`as`("sc")
 
             val organizationId = user.district.organization?.id
 
             select(
-                cIdField,
+                c.ID,
                 c.ORG_ID,
                 c.PROJECT_ID,
                 c.DATA,
                 c.IS_DELETED,
-                `val`(fetchExists(
-                    selectOne()
-                        .from(sc)
-                        .where(sc.ID.eq(cIdField))
-                )).`as`("hasSubComments"),
+                field(
+                    exists(
+                        selectOne()
+                            .from(sc)
+                            .where(
+                                sc.PARENT_ID.eq(c.ID)
+                            )
+                    )
+                ).`as`("hasSubComments"),
                 c.LIKE_COUNT,
                 c.DISLIKE_COUNT,
                 c.CREATED_AT,
@@ -78,7 +84,7 @@ class PostgreSqlRepository(
         return result.map {
             Comment(
                 id = it.get(COMMENTS.ID)!!,
-                parts = emptyList(),
+                parts = convertToComments(it.get(COMMENTS.DATA)),
                 isDeleted = it.get(COMMENTS.IS_DELETED)!!,
                 hasSubComments = it.get("hasSubComments") as Boolean,
                 likeCount = it.get(COMMENTS.LIKE_COUNT)!!,
@@ -94,4 +100,16 @@ class PostgreSqlRepository(
             )
         }
     }
+
+    // TODO: 이 부분 리팩하기
+    private fun convertToComments(jooqJson: JSON?): List<CommentPart>
+        = jooqJson?.let {json ->
+            val mapper = ObjectMapper().registerModules(
+                KotlinModule.Builder()
+                    .build()
+            )
+            mapper.readValue(json.data().toByteArray(), List::class.java).map {
+                mapper.convertValue(it, CommentPart::class.java)
+            }
+        } ?: throw RuntimeException("data 없음")
 }
