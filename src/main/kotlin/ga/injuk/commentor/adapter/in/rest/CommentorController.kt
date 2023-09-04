@@ -46,12 +46,10 @@ class CommentorController(
         val result = createCommentUseCase.execute(
             user = user,
             data = createCommentRequest?.convert()
-        )
+        ) ?: throw RuntimeException("생성 실패")
 
         return ResponseEntity.ok(
-            CreateCommentResponse(
-                id = result!!.id
-            )
+            CreateCommentResponse(result.id)
         )
     }
 
@@ -69,7 +67,7 @@ class CommentorController(
             .setProject(projectId)
             .setOrganization(organizationId)
             .build()
-        val (results, nextCursor) = listCommentsUseCase.execute(
+        val result = listCommentsUseCase.execute(
             user = user,
             data = ListCommentsRequest(
                 limit = limit?.toLong(),
@@ -80,31 +78,9 @@ class CommentorController(
                 },
                 resource = resourceId?.let { Resource(resourceId) }
             )
-        ).data
-
-        return ResponseEntity.ok(
-            ListCommentsResponse(
-                results = results.map {
-                    Comment(
-                        id = it.id,
-                        parts = emptyList(),
-                        isDeleted = it.isDeleted,
-                        hasSubComments = it.hasSubComments,
-                        likeCount = it.likeCount,
-                        dislikeCount = it.dislikeCount,
-                        created = CommentCreated(
-                            at = it.created.at.toOffsetDateTime(),
-                            by = By(it.created.by.id)
-                        ),
-                        updated = CommentUpdated(
-                            at = it.updated.at.toOffsetDateTime(),
-                            by = By(it.updated.by.id)
-                        )
-                    )
-                },
-                nextCursor = nextCursor,
-            )
         )
+
+        return ResponseEntity.ok(result.convert())
     }
 
     override fun listSubComments(

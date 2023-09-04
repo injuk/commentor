@@ -35,7 +35,8 @@ private fun Content.convertToDomainContent()
         text = this.text ?: "",
         marks = this.marks?.map {
             ga.injuk.commentor.domain.model.Mark(
-                type = it.type.convertToDomainMarkType(),
+                // TODO: 여기 it.type.convertToDomainMarkType()~ 에서 체이닝으로 변경했음. 괜찮나 확인하기
+                type = it.type?.convertToDomainMarkType(),
                 attrs = ga.injuk.commentor.domain.model.Mark.Attrs(
                     type = it.attrs?.type.convertToDomainMarkAttrsType(),
                     color = it.attrs?.color,
