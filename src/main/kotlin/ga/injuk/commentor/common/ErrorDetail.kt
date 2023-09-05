@@ -1,4 +1,4 @@
-package ga.injuk.commentor.domain
+package ga.injuk.commentor.common
 
 data class ErrorDetail(
     val code: String,

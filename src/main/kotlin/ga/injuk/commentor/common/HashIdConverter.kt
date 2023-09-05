@@ -18,5 +18,5 @@ class HashIdConverter(
         = converterInstance.encode(plain)
 
     override fun decode(cipher: String)
-        = converterInstance.decode(cipher).firstOrNull() ?: throw RuntimeException("디코드 불가능")
+        = converterInstance.decode(cipher).firstOrNull()
 }

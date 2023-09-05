@@ -3,6 +3,7 @@ package ga.injuk.commentor.adapter.out.persistence.jooq
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.mzc.cloudplex.download.persistence.jooq.tables.references.COMMENTS
+import ga.injuk.commentor.adapter.exception.InvalidJsonException
 import ga.injuk.commentor.adapter.extension.convertToJooqJson
 import ga.injuk.commentor.adapter.out.persistence.CommentorRepository
 import ga.injuk.commentor.application.port.dto.request.CreateCommentRequest
@@ -111,5 +112,5 @@ class PostgreSqlRepository(
             mapper.readValue(json.data().toByteArray(), List::class.java).map {
                 mapper.convertValue(it, CommentPart::class.java)
             }
-        } ?: throw RuntimeException("data 없음")
+        } ?: throw InvalidJsonException("Comment cannot be null.")
 }
