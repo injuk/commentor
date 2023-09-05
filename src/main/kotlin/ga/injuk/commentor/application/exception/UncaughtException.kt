@@ -6,11 +6,9 @@ import ga.injuk.commentor.common.ErrorDetail
 class UncaughtException(
     private val msg: String? = null,
 ): CommentorError, RuntimeException() {
-    override val errorDetails: List<ErrorDetail>
-        get() = listOf(
-            ErrorDetail(
-                code = "COMMENTOR_UNCAUGHT_EXCEPTION",
-                message = msg ?: "Uncaught exception occurred.",
-            ),
+    override val errorDetails: ErrorDetail
+        get() = ErrorDetail(
+            code = "COMMENTOR_UNCAUGHT_EXCEPTION",
+            messages = msg?.let { listOf(it) } ?: listOf("Uncaught exception occurred."),
         )
 }
