@@ -13,10 +13,10 @@ class CreateCommentCommand(
     private val idConverter: IdConverter,
     private val createCommentPort: CreateCommentPort,
 ): CreateCommentUseCase {
-    override fun execute(user: User, data: CreateCommentRequest?): CreateCommentResponse? {
+    override fun execute(user: User, data: CreateCommentRequest): CreateCommentResponse {
         val result = createCommentPort.create(
             user = user,
-            request = data ?: throw RuntimeException("데이터 없음")
+            request = data,
         ) ?: throw RuntimeException("생성 불가")
 
         return CreateCommentResponse(

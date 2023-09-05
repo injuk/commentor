@@ -17,11 +17,11 @@ class ListCommentsQuery(
     private val listCommentsPort: ListCommentsPort,
 ): ListCommentsUseCase {
 
-    override fun execute(user: User, data: ListCommentsRequest?): ListCommentsResponse {
+    override fun execute(user: User, data: ListCommentsRequest): ListCommentsResponse {
         // TODO: 반환된 결과의 id는 모두 인코딩해야 함
         val results = listCommentsPort.getList(
             user = user,
-            request = data ?: ListCommentsRequest()
+            request = data,
         )
 
         return ListCommentsResponse(

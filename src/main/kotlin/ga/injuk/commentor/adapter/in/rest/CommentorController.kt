@@ -45,8 +45,8 @@ class CommentorController(
             .build()
         val result = createCommentUseCase.execute(
             user = user,
-            data = createCommentRequest?.convert()
-        ) ?: throw RuntimeException("생성 실패")
+            data = createCommentRequest?.convert() ?: throw RuntimeException("데이터 없음")
+        )
 
         return ResponseEntity.ok(
             CreateCommentResponse(result.id)
