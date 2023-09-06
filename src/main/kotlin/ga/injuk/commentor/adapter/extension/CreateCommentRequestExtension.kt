@@ -1,11 +1,12 @@
 package ga.injuk.commentor.adapter.extension
 
+import ga.injuk.commentor.domain.model.CommentDomain
 import ga.injuk.commentor.models.*
 
 internal fun CreateCommentRequest?.convert()
     = this?.run {
         ga.injuk.commentor.application.port.dto.request.CreateCommentRequest(
-            domain = this.domain,
+            domain = this.domain ?: CommentDomain.NONE.value,
             resource = ga.injuk.commentor.application.port.dto.Resource(
                 id = this.resource.id,
             ),
