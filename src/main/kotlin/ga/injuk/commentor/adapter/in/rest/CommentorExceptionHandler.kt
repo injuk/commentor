@@ -1,7 +1,7 @@
 package ga.injuk.commentor.adapter.`in`.rest
 
 import ga.injuk.commentor.adapter.exception.InvalidJsonException
-import ga.injuk.commentor.application.exception.UncaughtException
+import ga.injuk.commentor.adapter.exception.UncaughtException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ExceptionHandler

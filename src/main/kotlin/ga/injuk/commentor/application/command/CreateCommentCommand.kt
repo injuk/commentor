@@ -1,6 +1,5 @@
 package ga.injuk.commentor.application.command
 
-import ga.injuk.commentor.application.exception.UncaughtException
 import ga.injuk.commentor.application.port.`in`.CreateCommentUseCase
 import ga.injuk.commentor.application.port.dto.request.CreateCommentRequest
 import ga.injuk.commentor.application.port.dto.response.CreateCommentResponse
@@ -18,7 +17,7 @@ class CreateCommentCommand(
         val result = createCommentPort.create(
             user = user,
             request = data,
-        ) ?: throw UncaughtException("Failed to create comment resource.")
+        )
 
         return CreateCommentResponse(
             id = idConverter.encode(result)

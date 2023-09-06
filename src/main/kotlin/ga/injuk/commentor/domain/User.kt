@@ -43,11 +43,11 @@ data class User(
 
         fun build() = this.run {
             User(
-                id = this.userId ?: throw RuntimeException("userId is required"),
-                authorization = this.authorization ?: throw RuntimeException("userId is required"),
+                id = this.userId ?: throw Exception("userId is required"),
+                authorization = this.authorization ?: throw Exception("userId is required"),
                 district = District(
                     organization = this.organization,
-                    project = this.project ?: throw RuntimeException("project is required"),
+                    project = this.project ?: throw Exception("project is required"),
                 ),
             )
         }

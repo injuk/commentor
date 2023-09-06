@@ -1,4 +1,4 @@
-package ga.injuk.commentor.application.exception
+package ga.injuk.commentor.adapter.exception
 
 import ga.injuk.commentor.common.CommentorError
 import ga.injuk.commentor.common.ErrorDetail

@@ -1,5 +1,6 @@
 package ga.injuk.commentor.adapter.out.persistence
 
+import ga.injuk.commentor.adapter.exception.UncaughtException
 import ga.injuk.commentor.application.port.dto.request.CreateCommentRequest
 import ga.injuk.commentor.application.port.dto.request.ListCommentsRequest
 import ga.injuk.commentor.application.port.out.persistence.CreateCommentPort
@@ -19,8 +20,8 @@ class CommentorPersistenceAdapter(
             .debug("commentorRepository={}", commentorRepository.javaClass);
     }
 
-    override fun create(user: User, request: CreateCommentRequest): Long? {
-        return commentorRepository.insert(user, request)
+    override fun create(user: User, request: CreateCommentRequest): Long {
+        return commentorRepository.insert(user, request) ?: throw UncaughtException("Failed to create comment resource.")
     }
 
     override fun getList(user: User, request: ListCommentsRequest): List<Comment> {
