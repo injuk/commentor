@@ -1,6 +1,7 @@
 package ga.injuk.commentor.adapter.out.persistence
 
 import ga.injuk.commentor.adapter.exception.UncaughtException
+import ga.injuk.commentor.application.port.dto.Pagination
 import ga.injuk.commentor.application.port.dto.request.CreateCommentRequest
 import ga.injuk.commentor.application.port.dto.request.ListCommentsRequest
 import ga.injuk.commentor.application.port.out.persistence.CreateCommentPort
@@ -14,17 +15,13 @@ import org.slf4j.LoggerFactory
 class CommentorPersistenceAdapter(
     private val commentorRepository: CommentorRepository,
 ): CreateCommentPort, ListCommentsPort {
-    init {
-        LoggerFactory
-            .getLogger(this.javaClass)
-            .debug("commentorRepository={}", commentorRepository.javaClass);
-    }
+    private val logger = LoggerFactory.getLogger(this.javaClass)
 
     override fun create(user: User, request: CreateCommentRequest): Long {
         return commentorRepository.insert(user, request) ?: throw UncaughtException("Failed to create comment resource.")
     }
 
-    override fun getList(user: User, request: ListCommentsRequest): List<Comment> {
+    override fun getList(user: User, request: ListCommentsRequest): Pagination<Comment> {
         return commentorRepository.findBy(user, request)
     }
 }

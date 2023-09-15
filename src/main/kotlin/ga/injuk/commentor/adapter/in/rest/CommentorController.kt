@@ -19,12 +19,7 @@ class CommentorController(
     private val createCommentUseCase: CreateCommentUseCase,
     private val listCommentsUseCase: ListCommentsUseCase,
 ): CommentApi {
-    init {
-        LoggerFactory
-            .getLogger(this.javaClass)
-//            .debug("createCommentUseCase={}", createCommentUseCase.javaClass)
-            .debug("listCommentsUseCase={}", listCommentsUseCase.javaClass)
-    }
+    private val logger = LoggerFactory.getLogger(this.javaClass)
 
     override fun createComment(
         authorization: String,
