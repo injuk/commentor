@@ -8,6 +8,7 @@ import ga.injuk.commentor.application.JsonObjectMapper
 import ga.injuk.commentor.application.port.dto.Pagination
 import ga.injuk.commentor.application.port.dto.request.CreateCommentRequest
 import ga.injuk.commentor.application.port.dto.request.ListCommentsRequest
+import ga.injuk.commentor.application.port.dto.request.UpdateCommentRequest
 import ga.injuk.commentor.domain.User
 import ga.injuk.commentor.domain.model.By
 import ga.injuk.commentor.domain.model.Comment
@@ -16,6 +17,7 @@ import org.jooq.DSLContext
 import org.jooq.JSON
 import org.jooq.impl.DSL.*
 import org.springframework.stereotype.Repository
+import java.time.LocalDateTime
 
 @Repository
 class PostgreSqlRepository(
@@ -141,6 +143,27 @@ class PostgreSqlRepository(
             },
             nextCursor = nextCursor,
         )
+    }
+
+    override fun update(user: User, request: UpdateCommentRequest): Int = dsl.transactionResult { trx ->
+        val comment = trx.dsl()
+            .select(
+                COMMENTS.UPDATED_BY_ID
+            )
+            .from(COMMENTS)
+            .where(COMMENTS.ID.eq(request.id))
+            .singleOrNull() ?: throw RuntimeException("there is no comment exists.")
+
+        if(comment.getValue(COMMENTS.UPDATED_BY_ID) != user.id) {
+            throw RuntimeException("cannot update other's comment.")
+        }
+
+        trx.dsl()
+            .update(COMMENTS)
+            .set(COMMENTS.UPDATED_AT, LocalDateTime.now())
+            .set(COMMENTS.DATA, request.parts.convertToJooqJson())
+            .where(COMMENTS.ID.eq(request.id))
+            .execute()
     }
 
     private fun convertToComments(jooqJson: JSON?): List<CommentPart> = jooqJson?.let { json ->

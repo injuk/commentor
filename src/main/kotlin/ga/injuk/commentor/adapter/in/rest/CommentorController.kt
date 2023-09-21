@@ -4,8 +4,11 @@ import ga.injuk.commentor.adapter.exception.InvalidArgumentException
 import ga.injuk.commentor.adapter.extension.convert
 import ga.injuk.commentor.application.port.dto.Resource
 import ga.injuk.commentor.application.port.dto.request.ListCommentsRequest
+import ga.injuk.commentor.application.port.dto.request.UpdateCommentRequest
 import ga.injuk.commentor.application.port.`in`.CreateCommentUseCase
 import ga.injuk.commentor.application.port.`in`.ListCommentsUseCase
+import ga.injuk.commentor.application.port.`in`.UpdateCommentUseCase
+import ga.injuk.commentor.common.IdConverter
 import ga.injuk.commentor.domain.User
 import ga.injuk.commentor.domain.model.*
 import ga.injuk.commentor.models.*
@@ -18,6 +21,8 @@ import org.springframework.web.bind.annotation.RestController
 class CommentorController(
     private val createCommentUseCase: CreateCommentUseCase,
     private val listCommentsUseCase: ListCommentsUseCase,
+    private val updateCommentUseCase: UpdateCommentUseCase,
+    private val idConverter: IdConverter,
 ): CommentApi {
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
@@ -90,7 +95,22 @@ class CommentorController(
         organizationId: String?,
         patchCommentRequest: PatchCommentRequest?
     ): ResponseEntity<PatchCommentResponse> {
-        return super.updateComment(id, authorization, projectId, organizationId, patchCommentRequest)
+        val user = User.builder()
+            .setAuthorization(authorization)
+            .setProject(projectId)
+            .setOrganization(organizationId)
+            .build()
+        val result = updateCommentUseCase.execute(
+            user = user,
+            data = UpdateCommentRequest(
+                id = idConverter.decode(id) ?: throw InvalidArgumentException("Request has invalid data."),
+                parts = patchCommentRequest?.parts?.map { it.convert() } ?: throw InvalidArgumentException("Request has invalid data.")
+            )
+        )
+
+        return ResponseEntity.ok(
+            PatchCommentResponse(result.id)
+        )
     }
 
     override fun deleteComment(

@@ -10,12 +10,12 @@ internal fun CreateCommentRequest?.convert()
             resource = ga.injuk.commentor.application.port.dto.Resource(
                 id = this.resource.id,
             ),
-            parts = this.parts.map { it.convertToDomainCommentPart() }
+            parts = this.parts.map { it.convert() }
         )
     }
 
 
-private fun CommentPart.convertToDomainCommentPart()
+internal fun CommentPart.convert()
     = ga.injuk.commentor.domain.model.CommentPart(
         type = this.type.convertToDomainCommentPartType(),
         attrs = ga.injuk.commentor.domain.model.CommentPart.Attrs(
