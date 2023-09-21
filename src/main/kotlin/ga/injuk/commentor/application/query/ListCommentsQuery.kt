@@ -18,7 +18,7 @@ class ListCommentsQuery(
     private val idConverter: IdConverter,
     private val listCommentsPort: ListCommentsPort,
 ): ListCommentsUseCase {
-
+    // TODO: base64 이외의 방법으로 nextCursor를 암복호화하기
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     override fun execute(user: User, data: ListCommentsRequest): ListCommentsResponse {
@@ -43,7 +43,7 @@ class ListCommentsQuery(
                 results = results.map {
                     IdEncodedComment.of(idConverter.encode(it.id), it)
                 },
-                nextCursor = nextCursor,
+                nextCursor = Base64Helper.encode(nextCursor),
             )
         )
     }

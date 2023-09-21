@@ -14,10 +14,8 @@ import ga.injuk.commentor.domain.model.Comment
 import ga.injuk.commentor.domain.model.CommentPart
 import org.jooq.DSLContext
 import org.jooq.JSON
-import org.jooq.SortField
 import org.jooq.impl.DSL.*
 import org.springframework.stereotype.Repository
-import java.time.LocalDateTime
 
 @Repository
 class PostgreSqlRepository(
@@ -31,34 +29,7 @@ class PostgreSqlRepository(
         private val c = COMMENTS.`as`("c")
         private val sc = COMMENTS.`as`("sc")
 
-        private val selectStep = select(
-            c.ID,
-            c.ORG_ID,
-            c.PROJECT_ID,
-            c.DATA,
-            c.IS_DELETED,
-            field(
-                exists(
-                    selectOne()
-                        .from(sc)
-                        .where(
-                            sc.PARENT_ID.eq(c.ID)
-                        )
-                )
-            ).`as`(HAS_SUB_COMMENTS),
-            concat(
-                c.CREATED_AT,
-                lpadIdByZero(),
-            ).`as`(NEXT_CURSOR),
-            c.LIKE_COUNT,
-            c.DISLIKE_COUNT,
-            c.CREATED_AT,
-            c.CREATED_BY_ID,
-            c.UPDATED_AT,
-            c.UPDATED_BY_ID
-        ).from(c)
-
-        private fun lpadIdByZero() = lpad(c.ID.cast(String::class.java), 10, "0")
+        private fun lpadByZero() = lpad(c.ID.cast(String::class.java), 10, "0")
     }
 
     override fun insert(user: User, request: CreateCommentRequest): Long? = dsl.transactionResult { trx ->
@@ -72,14 +43,38 @@ class PostgreSqlRepository(
             .set(COMMENTS.CREATED_BY_ID, user.id)
             .set(COMMENTS.UPDATED_BY_ID, user.id)
             .returningResult(COMMENTS.ID)
-
     }.single().getValue(COMMENTS.ID)
 
     override fun findBy(user: User, request: ListCommentsRequest): Pagination<Comment> {
         val limit = request.limit ?: 20L
 
         val response = dsl.run {
-            val selectStep = selectStep
+            val selectStep = select(
+                c.ID,
+                c.ORG_ID,
+                c.PROJECT_ID,
+                c.DATA,
+                c.IS_DELETED,
+                field(
+                    exists(
+                        selectOne()
+                            .from(sc)
+                            .where(
+                                sc.PARENT_ID.eq(c.ID)
+                            )
+                    )
+                ).`as`(HAS_SUB_COMMENTS),
+                concat(
+                    c.CREATED_AT,
+                    lpadByZero(),
+                ).`as`(NEXT_CURSOR),
+                c.LIKE_COUNT,
+                c.DISLIKE_COUNT,
+                c.CREATED_AT,
+                c.CREATED_BY_ID,
+                c.UPDATED_AT,
+                c.UPDATED_BY_ID
+            ).from(c)
                 .where(c.PROJECT_ID.eq(user.district.project.id))
                 .and(
                     user.district.organization?.id?.let { c.ORG_ID.eq(it) } ?: noCondition()
@@ -98,15 +93,17 @@ class PostgreSqlRepository(
                         else -> c.CREATED_AT
                     }
 
-                    concat(criteria, lpadIdByZero())
-                        .run {
-                            if(request.sortConditions.order == ListCommentsRequest.Order.ASC) {
-                                sortBy = criteria.asc()
-                                lt(request.nextCursor)
-                            } else {
-                                gt(request.nextCursor)
+                    and(
+                        concat(criteria, lpadByZero())
+                            .run {
+                                if(request.sortConditions.order == ListCommentsRequest.Order.ASC) {
+                                    sortBy = criteria.asc()
+                                    lt(request.nextCursor)
+                                } else {
+                                    gt(request.nextCursor)
+                                }
                             }
-                        }
+                    )
                 }
             }
                 .orderBy(sortBy)
