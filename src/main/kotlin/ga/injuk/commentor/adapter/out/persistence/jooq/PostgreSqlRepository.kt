@@ -7,6 +7,7 @@ import ga.injuk.commentor.adapter.out.persistence.CommentorRepository
 import ga.injuk.commentor.application.JsonObjectMapper
 import ga.injuk.commentor.application.port.dto.Pagination
 import ga.injuk.commentor.application.port.dto.request.CreateCommentRequest
+import ga.injuk.commentor.application.port.dto.request.DeleteCommentRequest
 import ga.injuk.commentor.application.port.dto.request.ListCommentsRequest
 import ga.injuk.commentor.application.port.dto.request.UpdateCommentRequest
 import ga.injuk.commentor.domain.User
@@ -148,13 +149,13 @@ class PostgreSqlRepository(
     override fun update(user: User, request: UpdateCommentRequest): Int = dsl.transactionResult { trx ->
         val comment = trx.dsl()
             .select(
-                COMMENTS.UPDATED_BY_ID
+                COMMENTS.CREATED_BY_ID
             )
             .from(COMMENTS)
             .where(COMMENTS.ID.eq(request.id))
             .singleOrNull() ?: throw RuntimeException("there is no comment exists.")
 
-        if(comment.getValue(COMMENTS.UPDATED_BY_ID) != user.id) {
+        if(comment.getValue(COMMENTS.CREATED_BY_ID) != user.id) {
             throw RuntimeException("cannot update other's comment.")
         }
 
@@ -162,6 +163,31 @@ class PostgreSqlRepository(
             .update(COMMENTS)
             .set(COMMENTS.UPDATED_AT, LocalDateTime.now())
             .set(COMMENTS.DATA, request.parts.convertToJooqJson())
+            .where(COMMENTS.ID.eq(request.id))
+            .execute()
+    }
+
+    override fun delete(user: User, request: DeleteCommentRequest): Int = dsl.transactionResult { trx ->
+        val comment = trx.dsl()
+            .select(
+                COMMENTS.CREATED_BY_ID,
+                COMMENTS.IS_DELETED,
+            )
+            .from(COMMENTS)
+            .where(COMMENTS.ID.eq(request.id))
+            .singleOrNull() ?: throw RuntimeException("there is no comment exists.")
+
+        if(comment.getValue(COMMENTS.CREATED_BY_ID) != user.id) {
+            throw RuntimeException("cannot delete other's comment.")
+        }
+        if(comment.getValue(COMMENTS.IS_DELETED) != false) {
+            throw RuntimeException("the comment has already been deleted.")
+        }
+
+        trx.dsl()
+            .update(COMMENTS)
+            .set(COMMENTS.UPDATED_AT, LocalDateTime.now())
+            .set(COMMENTS.IS_DELETED, true)
             .where(COMMENTS.ID.eq(request.id))
             .execute()
     }

@@ -3,9 +3,11 @@ package ga.injuk.commentor.adapter.`in`.rest
 import ga.injuk.commentor.adapter.exception.InvalidArgumentException
 import ga.injuk.commentor.adapter.extension.convert
 import ga.injuk.commentor.application.port.dto.Resource
+import ga.injuk.commentor.application.port.dto.request.DeleteCommentRequest
 import ga.injuk.commentor.application.port.dto.request.ListCommentsRequest
 import ga.injuk.commentor.application.port.dto.request.UpdateCommentRequest
 import ga.injuk.commentor.application.port.`in`.CreateCommentUseCase
+import ga.injuk.commentor.application.port.`in`.DeleteCommentUseCase
 import ga.injuk.commentor.application.port.`in`.ListCommentsUseCase
 import ga.injuk.commentor.application.port.`in`.UpdateCommentUseCase
 import ga.injuk.commentor.common.IdConverter
@@ -22,6 +24,7 @@ class CommentorController(
     private val createCommentUseCase: CreateCommentUseCase,
     private val listCommentsUseCase: ListCommentsUseCase,
     private val updateCommentUseCase: UpdateCommentUseCase,
+    private val deleteCommentUseCase: DeleteCommentUseCase,
     private val idConverter: IdConverter,
 ): CommentApi {
     private val logger = LoggerFactory.getLogger(this.javaClass)
@@ -119,7 +122,20 @@ class CommentorController(
         projectId: String,
         organizationId: String?
     ): ResponseEntity<Unit> {
-        return super.deleteComment(id, authorization, projectId, organizationId)
+        val user = User.builder()
+            .setAuthorization(authorization)
+            .setProject(projectId)
+            .setOrganization(organizationId)
+            .build()
+
+        deleteCommentUseCase.execute(
+            user = user,
+            data = DeleteCommentRequest(
+                id = idConverter.decode(id) ?: throw InvalidArgumentException("Request has invalid data."),
+            )
+        )
+
+        return ResponseEntity.noContent().build()
     }
 
     override fun bulkDeleteComments(
