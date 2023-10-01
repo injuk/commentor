@@ -6,10 +6,7 @@ import ga.injuk.commentor.adapter.extension.convertToJooqJson
 import ga.injuk.commentor.adapter.out.persistence.CommentorRepository
 import ga.injuk.commentor.application.JsonObjectMapper
 import ga.injuk.commentor.application.port.dto.Pagination
-import ga.injuk.commentor.application.port.dto.request.CreateCommentRequest
-import ga.injuk.commentor.application.port.dto.request.DeleteCommentRequest
-import ga.injuk.commentor.application.port.dto.request.ListCommentsRequest
-import ga.injuk.commentor.application.port.dto.request.UpdateCommentRequest
+import ga.injuk.commentor.application.port.dto.request.*
 import ga.injuk.commentor.domain.User
 import ga.injuk.commentor.domain.model.By
 import ga.injuk.commentor.domain.model.Comment
@@ -189,6 +186,22 @@ class PostgreSqlRepository(
             .set(COMMENTS.UPDATED_AT, LocalDateTime.now())
             .set(COMMENTS.IS_DELETED, true)
             .where(COMMENTS.ID.eq(request.id))
+            .execute()
+    }
+
+    override fun deleteBy(request: BulkDeleteCommentRequest): Int = dsl.transactionResult { trx ->
+        trx.dsl()
+            .selectOne()
+            .from(COMMENTS)
+            .where(COMMENTS.RESOURCE_ID.`in`(request.resourceIds))
+            .and(COMMENTS.DOMAIN.eq(request.domain.value))
+            .limit(1)
+            .singleOrNull() ?: throw RuntimeException("there is no comment exists.")
+
+        trx.dsl()
+            .deleteFrom(COMMENTS)
+            .where(COMMENTS.RESOURCE_ID.`in`(request.resourceIds))
+            .and(COMMENTS.DOMAIN.eq(request.domain.value))
             .execute()
     }
 

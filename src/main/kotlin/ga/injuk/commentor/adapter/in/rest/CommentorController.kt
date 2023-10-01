@@ -3,13 +3,11 @@ package ga.injuk.commentor.adapter.`in`.rest
 import ga.injuk.commentor.adapter.exception.InvalidArgumentException
 import ga.injuk.commentor.adapter.extension.convert
 import ga.injuk.commentor.application.port.dto.Resource
+import ga.injuk.commentor.application.port.dto.request.BulkDeleteCommentRequest
 import ga.injuk.commentor.application.port.dto.request.DeleteCommentRequest
 import ga.injuk.commentor.application.port.dto.request.ListCommentsRequest
 import ga.injuk.commentor.application.port.dto.request.UpdateCommentRequest
-import ga.injuk.commentor.application.port.`in`.CreateCommentUseCase
-import ga.injuk.commentor.application.port.`in`.DeleteCommentUseCase
-import ga.injuk.commentor.application.port.`in`.ListCommentsUseCase
-import ga.injuk.commentor.application.port.`in`.UpdateCommentUseCase
+import ga.injuk.commentor.application.port.`in`.*
 import ga.injuk.commentor.common.IdConverter
 import ga.injuk.commentor.domain.User
 import ga.injuk.commentor.domain.model.*
@@ -25,6 +23,7 @@ class CommentorController(
     private val listCommentsUseCase: ListCommentsUseCase,
     private val updateCommentUseCase: UpdateCommentUseCase,
     private val deleteCommentUseCase: DeleteCommentUseCase,
+    private val bulkDeleteCommentUseCase: BulkDeleteCommentUseCase,
     private val idConverter: IdConverter,
 ): CommentApi {
     private val logger = LoggerFactory.getLogger(this.javaClass)
@@ -144,7 +143,27 @@ class CommentorController(
         organizationId: String?,
         bulkDeleteCommentsRequest: BulkDeleteCommentsRequest?
     ): ResponseEntity<Unit> {
-        return super.bulkDeleteComments(authorization, projectId, organizationId, bulkDeleteCommentsRequest)
+        if(bulkDeleteCommentsRequest == null) {
+            throw InvalidArgumentException("Request cannot be null.")
+        }
+
+        val user = User.builder()
+            .setAuthorization(authorization)
+            .setProject(projectId)
+            .setOrganization(organizationId)
+            .build()
+
+        val resourceDomain = CommentDomain.from(bulkDeleteCommentsRequest.domain) ?: throw InvalidArgumentException("Request has invalid resource domain.")
+
+        bulkDeleteCommentUseCase.execute(
+            user = user,
+            data = BulkDeleteCommentRequest(
+                resourceIds = bulkDeleteCommentsRequest.resource.ids,
+                domain = resourceDomain,
+            )
+        )
+
+        return ResponseEntity.noContent().build()
     }
 
     override fun likeComment(

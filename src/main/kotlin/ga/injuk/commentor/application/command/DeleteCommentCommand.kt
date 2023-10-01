@@ -17,7 +17,7 @@ class DeleteCommentCommand(
             request = data,
         ).run {
             if(equals(0)) {
-                throw UncaughtException("failed to update comment")
+                throw UncaughtException("failed to delete comment")
             }
         }
     }

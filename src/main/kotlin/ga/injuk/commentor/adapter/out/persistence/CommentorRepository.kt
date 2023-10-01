@@ -1,10 +1,7 @@
 package ga.injuk.commentor.adapter.out.persistence
 
 import ga.injuk.commentor.application.port.dto.Pagination
-import ga.injuk.commentor.application.port.dto.request.CreateCommentRequest
-import ga.injuk.commentor.application.port.dto.request.DeleteCommentRequest
-import ga.injuk.commentor.application.port.dto.request.ListCommentsRequest
-import ga.injuk.commentor.application.port.dto.request.UpdateCommentRequest
+import ga.injuk.commentor.application.port.dto.request.*
 import ga.injuk.commentor.domain.User
 import ga.injuk.commentor.domain.model.Comment
 
@@ -16,4 +13,6 @@ interface CommentorRepository {
     fun update(user: User, request: UpdateCommentRequest): Int
 
     fun delete(user: User, request: DeleteCommentRequest): Int
+
+    fun deleteBy(request: BulkDeleteCommentRequest): Int
 }
