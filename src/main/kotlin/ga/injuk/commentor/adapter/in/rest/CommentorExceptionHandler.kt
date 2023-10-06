@@ -1,9 +1,6 @@
 package ga.injuk.commentor.adapter.`in`.rest
 
-import ga.injuk.commentor.adapter.exception.BadRequestException
-import ga.injuk.commentor.adapter.exception.InvalidArgumentException
-import ga.injuk.commentor.adapter.exception.InvalidJsonException
-import ga.injuk.commentor.adapter.exception.UncaughtException
+import ga.injuk.commentor.adapter.exception.*
 import ga.injuk.commentor.common.CommentorError
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -21,5 +18,10 @@ class CommentorExceptionHandler {
     @ExceptionHandler(InvalidJsonException::class, InvalidArgumentException::class, BadRequestException::class)
     fun handleBadRequestException(e: CommentorError) = ResponseEntity
         .status(HttpStatus.BAD_REQUEST)
+        .body(e.errorDetails)
+
+    @ExceptionHandler(ResourceNotFoundException::class)
+    fun handleResourceNotFoundException(e: CommentorError) = ResponseEntity
+        .status(HttpStatus.NOT_FOUND)
         .body(e.errorDetails)
 }

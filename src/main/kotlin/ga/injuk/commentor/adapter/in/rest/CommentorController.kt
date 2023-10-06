@@ -3,15 +3,13 @@ package ga.injuk.commentor.adapter.`in`.rest
 import ga.injuk.commentor.adapter.exception.InvalidArgumentException
 import ga.injuk.commentor.adapter.extension.convert
 import ga.injuk.commentor.application.port.dto.Resource
-import ga.injuk.commentor.application.port.dto.request.BulkDeleteCommentRequest
-import ga.injuk.commentor.application.port.dto.request.DeleteCommentRequest
-import ga.injuk.commentor.application.port.dto.request.ListCommentsRequest
-import ga.injuk.commentor.application.port.dto.request.UpdateCommentRequest
+import ga.injuk.commentor.application.port.dto.request.*
 import ga.injuk.commentor.application.port.`in`.*
 import ga.injuk.commentor.common.IdConverter
 import ga.injuk.commentor.domain.User
 import ga.injuk.commentor.domain.model.*
 import ga.injuk.commentor.models.*
+import ga.injuk.commentor.models.CreateCommentRequest
 import ga.injuk.commentor.operations.CommentApi
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
@@ -19,11 +17,12 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 class CommentorController(
-    private val createCommentUseCase: CreateCommentUseCase,
-    private val listCommentsUseCase: ListCommentsUseCase,
-    private val updateCommentUseCase: UpdateCommentUseCase,
-    private val deleteCommentUseCase: DeleteCommentUseCase,
-    private val bulkDeleteCommentUseCase: BulkDeleteCommentUseCase,
+    private val createComment: CreateCommentUseCase,
+    private val listComments: ListCommentsUseCase,
+    private val listSubComments: ListSubCommentsUseCase,
+    private val updateComment: UpdateCommentUseCase,
+    private val deleteComment: DeleteCommentUseCase,
+    private val bulkDeleteComments: BulkDeleteCommentUseCase,
     private val idConverter: IdConverter,
 ): CommentApi {
     private val logger = LoggerFactory.getLogger(this.javaClass)
@@ -39,7 +38,7 @@ class CommentorController(
             .setProject(projectId)
             .setOrganization(organizationId)
             .build()
-        val result = createCommentUseCase.execute(
+        val result = createComment.execute(
             user = user,
             data = createCommentRequest?.convert() ?: throw InvalidArgumentException("Request has invalid data.")
         )
@@ -63,7 +62,7 @@ class CommentorController(
             .setProject(projectId)
             .setOrganization(organizationId)
             .build()
-        val result = listCommentsUseCase.execute(
+        val result = listComments.execute(
             user = user,
             data = ListCommentsRequest(
                 limit = limit?.toLong(),
@@ -87,7 +86,24 @@ class CommentorController(
         limit: Int?,
         nextCursor: String?
     ): ResponseEntity<ListSubCommentsResponse> {
-        return super.listSubComments(id, authorization, projectId, organizationId, limit, nextCursor)
+        val user = User.builder()
+            .setAuthorization(authorization)
+            .setProject(projectId)
+            .setOrganization(organizationId)
+            .build()
+
+        val (results, nextCursor) = listSubComments.execute(
+            user = user,
+            data = ListSubCommentsRequest(
+                limit = limit?.toLong(),
+                nextCursor = nextCursor,
+                parentId = idConverter.decode(id) ?: throw InvalidArgumentException("Request has invalid data."),
+            )
+        ).convert()
+
+        return ResponseEntity.ok(
+            ListSubCommentsResponse(results, nextCursor)
+        )
     }
 
     override fun updateComment(
@@ -102,7 +118,7 @@ class CommentorController(
             .setProject(projectId)
             .setOrganization(organizationId)
             .build()
-        val result = updateCommentUseCase.execute(
+        val result = updateComment.execute(
             user = user,
             data = UpdateCommentRequest(
                 id = idConverter.decode(id) ?: throw InvalidArgumentException("Request has invalid data."),
@@ -127,7 +143,7 @@ class CommentorController(
             .setOrganization(organizationId)
             .build()
 
-        deleteCommentUseCase.execute(
+        deleteComment.execute(
             user = user,
             data = DeleteCommentRequest(
                 id = idConverter.decode(id) ?: throw InvalidArgumentException("Request has invalid data."),
@@ -155,7 +171,7 @@ class CommentorController(
 
         val resourceDomain = CommentDomain.from(bulkDeleteCommentsRequest.domain) ?: throw InvalidArgumentException("Request has invalid resource domain.")
 
-        bulkDeleteCommentUseCase.execute(
+        bulkDeleteComments.execute(
             user = user,
             data = BulkDeleteCommentRequest(
                 resourceIds = bulkDeleteCommentsRequest.resource.ids,

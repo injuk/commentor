@@ -12,13 +12,19 @@ import org.slf4j.LoggerFactory
 @Adapter
 class CommentorPersistenceAdapter(
     private val commentorRepository: CommentorRepository,
-): CreateCommentPort, ListCommentsPort, UpdateCommentPort, DeleteCommentPort, BulkDeleteCommentPort {
+): CreateCommentPort, GetCommentPort, ListCommentsPort, ListSubCommentsPort, UpdateCommentPort, DeleteCommentPort, BulkDeleteCommentPort {
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
     override fun create(user: User, request: CreateCommentRequest): Long
         = commentorRepository.insert(user, request) ?: throw UncaughtException("Failed to create comment resource.")
 
+    override fun get(user: User, request: GetCommentRequest): Comment?
+        = commentorRepository.findOne(request)
+
     override fun getList(user: User, request: ListCommentsRequest): Pagination<Comment>
+        = commentorRepository.findBy(user, request)
+
+    override fun getList(user: User, request: ListSubCommentsRequest): Pagination<Comment>
         = commentorRepository.findBy(user, request)
 
     override fun update(user: User, request: UpdateCommentRequest): Int

@@ -8,7 +8,11 @@ import ga.injuk.commentor.domain.model.Comment
 interface CommentorRepository {
     fun insert(user: User, request: CreateCommentRequest): Long?
 
+    fun findOne(request: GetCommentRequest): Comment?
+
     fun findBy(user: User, request: ListCommentsRequest): Pagination<Comment>
+
+    fun findBy(user: User, request: ListSubCommentsRequest): Pagination<Comment>
 
     fun update(user: User, request: UpdateCommentRequest): Int
 
