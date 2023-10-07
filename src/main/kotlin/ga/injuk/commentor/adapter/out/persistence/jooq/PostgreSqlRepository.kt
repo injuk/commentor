@@ -32,6 +32,7 @@ class PostgreSqlRepository(
         private fun lpadByZero() = lpad(c.ID.cast(String::class.java), 10, "0")
     }
 
+    // TODO: dsl.transactionResult를 사용하지 않도록 수정
     override fun insert(user: User, request: CreateCommentRequest): Long? = dsl.transactionResult { trx ->
         trx.dsl()
             .insertInto(COMMENTS)
@@ -290,6 +291,7 @@ class PostgreSqlRepository(
         )
     }
 
+    // TODO: dsl.transactionResult를 사용하지 않도록 수정
     override fun update(user: User, request: UpdateCommentRequest): Int = dsl.transactionResult { trx ->
         val comment = trx.dsl()
             .select(
@@ -311,6 +313,7 @@ class PostgreSqlRepository(
             .execute()
     }
 
+    // TODO: dsl.transactionResult를 사용하지 않도록 수정
     override fun delete(user: User, request: DeleteCommentRequest): Int = dsl.transactionResult { trx ->
         val comment = trx.dsl()
             .select(
@@ -336,6 +339,7 @@ class PostgreSqlRepository(
             .execute()
     }
 
+    // TODO: dsl.transactionResult를 사용하지 않도록 수정
     override fun deleteBy(request: BulkDeleteCommentRequest): Int = dsl.transactionResult { trx ->
         trx.dsl()
             .selectOne()
