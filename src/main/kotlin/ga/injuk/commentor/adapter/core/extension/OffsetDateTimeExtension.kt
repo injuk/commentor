@@ -1,4 +1,4 @@
-package ga.injuk.commentor.adapter.extension
+package ga.injuk.commentor.adapter.core.extension
 
 import java.time.LocalDateTime
 import java.time.OffsetDateTime

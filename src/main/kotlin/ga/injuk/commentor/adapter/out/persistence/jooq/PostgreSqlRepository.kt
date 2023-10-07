@@ -1,7 +1,7 @@
 package ga.injuk.commentor.adapter.out.persistence.jooq
 
 import com.mzc.cloudplex.download.persistence.jooq.tables.references.COMMENTS
-import ga.injuk.commentor.adapter.extension.convertToJooqJson
+import ga.injuk.commentor.adapter.core.extension.convertToJooqJson
 import ga.injuk.commentor.adapter.out.dto.AffectedRows
 import ga.injuk.commentor.adapter.out.dto.FindByResponseDto
 import ga.injuk.commentor.adapter.out.dto.FindOneResponseDto

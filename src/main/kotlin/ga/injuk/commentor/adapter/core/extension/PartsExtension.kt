@@ -1,4 +1,4 @@
-package ga.injuk.commentor.adapter.extension
+package ga.injuk.commentor.adapter.core.extension
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import ga.injuk.commentor.application.JsonObjectMapper

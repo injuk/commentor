@@ -1,8 +1,8 @@
 package ga.injuk.commentor.application.query
 
-import ga.injuk.commentor.adapter.exception.ResourceNotFoundException
+import ga.injuk.commentor.adapter.core.exception.ResourceNotFoundException
 import ga.injuk.commentor.application.Base64Helper
-import ga.injuk.commentor.application.port.dto.IdEncodedComment
+import ga.injuk.commentor.application.core.extension.refineWith
 import ga.injuk.commentor.application.port.dto.Pagination
 import ga.injuk.commentor.application.port.dto.request.GetCommentRequest
 import ga.injuk.commentor.application.port.dto.request.ListSubCommentsRequest
@@ -37,15 +37,15 @@ class ListSubCommentsQuery(
                 nextCursor = Base64Helper.decode(data.nextCursor),
             ),
         )
+        logger.info("nextCursor: $nextCursor")
 
         val encoded = Base64Helper.encode(nextCursor)
-        logger.info("nextCursor: $nextCursor")
         logger.info("encoded nextCursor: $encoded")
 
         return ListCommentsResponse(
             Pagination(
                 results = results.map {
-                    IdEncodedComment.of(idConverter.encode(it.id), it)
+                    it.refineWith(idConverter.encode(it.id))
                 },
                 nextCursor = Base64Helper.encode(nextCursor),
             )

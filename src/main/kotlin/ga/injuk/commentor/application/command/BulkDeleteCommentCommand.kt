@@ -1,7 +1,7 @@
 package ga.injuk.commentor.application.command
 
-import ga.injuk.commentor.adapter.exception.BadRequestException
-import ga.injuk.commentor.adapter.exception.InvalidArgumentException
+import ga.injuk.commentor.adapter.core.exception.BadRequestException
+import ga.injuk.commentor.adapter.core.exception.InvalidArgumentException
 import ga.injuk.commentor.application.port.dto.request.BulkDeleteCommentRequest
 import ga.injuk.commentor.application.port.`in`.BulkDeleteCommentUseCase
 import ga.injuk.commentor.application.port.out.persistence.BulkDeleteCommentPort

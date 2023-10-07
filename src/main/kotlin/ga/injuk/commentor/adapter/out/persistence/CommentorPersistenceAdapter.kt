@@ -1,7 +1,7 @@
 package ga.injuk.commentor.adapter.out.persistence
 
-import ga.injuk.commentor.adapter.exception.InvalidArgumentException
-import ga.injuk.commentor.adapter.exception.UncaughtException
+import ga.injuk.commentor.adapter.core.exception.InvalidArgumentException
+import ga.injuk.commentor.adapter.core.exception.UncaughtException
 import ga.injuk.commentor.adapter.out.dto.FindByResponseDto
 import ga.injuk.commentor.adapter.out.dto.FindOneResponseDto
 import ga.injuk.commentor.application.port.dto.Pagination

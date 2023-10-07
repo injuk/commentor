@@ -1,7 +1,7 @@
 package ga.injuk.commentor.adapter.`in`.rest
 
-import ga.injuk.commentor.adapter.exception.InvalidArgumentException
-import ga.injuk.commentor.adapter.extension.convert
+import ga.injuk.commentor.adapter.core.exception.InvalidArgumentException
+import ga.injuk.commentor.adapter.core.extension.convert
 import ga.injuk.commentor.application.port.dto.Resource
 import ga.injuk.commentor.application.port.dto.request.*
 import ga.injuk.commentor.application.port.`in`.*

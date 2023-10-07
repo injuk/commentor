@@ -1,4 +1,4 @@
-package ga.injuk.commentor.adapter.extension
+package ga.injuk.commentor.adapter.core.extension
 
 import ga.injuk.commentor.application.port.dto.IdEncodedComment
 import ga.injuk.commentor.application.port.dto.response.ListCommentsResponse

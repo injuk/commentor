@@ -1,7 +1,7 @@
 package ga.injuk.commentor.application.query
 
 import ga.injuk.commentor.application.Base64Helper
-import ga.injuk.commentor.application.port.dto.IdEncodedComment
+import ga.injuk.commentor.application.core.extension.refineWith
 import ga.injuk.commentor.application.port.dto.Pagination
 import ga.injuk.commentor.application.port.dto.request.ListCommentsRequest
 import ga.injuk.commentor.application.port.dto.response.ListCommentsResponse
@@ -9,7 +9,6 @@ import ga.injuk.commentor.application.port.`in`.ListCommentsUseCase
 import ga.injuk.commentor.application.port.out.persistence.ListCommentsPort
 import ga.injuk.commentor.common.IdConverter
 import ga.injuk.commentor.domain.User
-import ga.injuk.commentor.domain.model.Comment
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
@@ -33,15 +32,15 @@ class ListCommentsQuery(
                 nextCursor = Base64Helper.decode(data.nextCursor),
             ),
         )
+        logger.info("nextCursor: $nextCursor")
 
         val encoded = Base64Helper.encode(nextCursor)
-        logger.info("nextCursor: $nextCursor")
         logger.info("encoded nextCursor: $encoded")
 
         return ListCommentsResponse(
             Pagination(
                 results = results.map {
-                    IdEncodedComment.of(idConverter.encode(it.id), it)
+                    it.refineWith(idConverter.encode(it.id))
                 },
                 nextCursor = Base64Helper.encode(nextCursor),
             )

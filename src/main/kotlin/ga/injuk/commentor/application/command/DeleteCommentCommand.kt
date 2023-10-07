@@ -1,7 +1,7 @@
 package ga.injuk.commentor.application.command
 
-import ga.injuk.commentor.adapter.exception.BadRequestException
-import ga.injuk.commentor.adapter.exception.ResourceNotFoundException
+import ga.injuk.commentor.adapter.core.exception.BadRequestException
+import ga.injuk.commentor.adapter.core.exception.ResourceNotFoundException
 import ga.injuk.commentor.application.port.dto.request.DeleteCommentRequest
 import ga.injuk.commentor.application.port.dto.request.GetCommentRequest
 import ga.injuk.commentor.application.port.`in`.DeleteCommentUseCase

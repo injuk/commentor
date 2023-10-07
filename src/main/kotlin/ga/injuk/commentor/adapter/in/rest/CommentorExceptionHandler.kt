@@ -1,6 +1,6 @@
 package ga.injuk.commentor.adapter.`in`.rest
 
-import ga.injuk.commentor.adapter.exception.*
+import ga.injuk.commentor.adapter.core.exception.*
 import ga.injuk.commentor.common.CommentorError
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity

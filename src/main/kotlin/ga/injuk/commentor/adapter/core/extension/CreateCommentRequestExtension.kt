@@ -1,4 +1,4 @@
-package ga.injuk.commentor.adapter.extension
+package ga.injuk.commentor.adapter.core.extension
 
 import ga.injuk.commentor.domain.model.CommentDomain
 import ga.injuk.commentor.models.*
