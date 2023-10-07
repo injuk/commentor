@@ -1,15 +1,15 @@
 package ga.injuk.commentor.adapter.out.persistence.jooq
 
 import com.mzc.cloudplex.download.persistence.jooq.tables.references.COMMENTS
-import ga.injuk.commentor.adapter.exception.InvalidJsonException
 import ga.injuk.commentor.adapter.extension.convertToJooqJson
+import ga.injuk.commentor.adapter.out.dto.AffectedRows
+import ga.injuk.commentor.adapter.out.dto.FindByResponseDto
+import ga.injuk.commentor.adapter.out.dto.FindOneResponseDto
+import ga.injuk.commentor.adapter.out.dto.InsertResponseDto
 import ga.injuk.commentor.adapter.out.persistence.CommentorRepository
 import ga.injuk.commentor.application.JsonObjectMapper
-import ga.injuk.commentor.application.port.dto.Pagination
 import ga.injuk.commentor.application.port.dto.request.*
 import ga.injuk.commentor.domain.User
-import ga.injuk.commentor.domain.model.By
-import ga.injuk.commentor.domain.model.Comment
 import ga.injuk.commentor.domain.model.CommentPart
 import org.jooq.DSLContext
 import org.jooq.JSON
@@ -21,7 +21,6 @@ import java.time.LocalDateTime
 class PostgreSqlRepository(
     private val dsl: DSLContext,
 ) : CommentorRepository {
-
     companion object {
         private const val HAS_SUB_COMMENTS = "hasSubComments"
         private const val NEXT_CURSOR = "nextCursor"
@@ -32,21 +31,23 @@ class PostgreSqlRepository(
         private fun lpadByZero() = lpad(c.ID.cast(String::class.java), 10, "0")
     }
 
-    // TODO: dsl.transactionResult를 사용하지 않도록 수정
-    override fun insert(user: User, request: CreateCommentRequest): Long? = dsl.transactionResult { trx ->
-        trx.dsl()
-            .insertInto(COMMENTS)
-            .set(COMMENTS.ORG_ID, user.district.organization?.id)
-            .set(COMMENTS.PROJECT_ID, user.district.project.id)
-            .set(COMMENTS.DOMAIN, request.domain)
-            .set(COMMENTS.RESOURCE_ID, request.resource.id)
-            .set(COMMENTS.DATA, request.parts.convertToJooqJson())
-            .set(COMMENTS.CREATED_BY_ID, user.id)
-            .set(COMMENTS.UPDATED_BY_ID, user.id)
-            .returningResult(COMMENTS.ID)
-    }.single().getValue(COMMENTS.ID)
+    override fun insert(user: User, request: CreateCommentRequest): InsertResponseDto {
+        val response = dsl.run {
+            insertInto(COMMENTS)
+                .set(COMMENTS.ORG_ID, user.district.organization?.id)
+                .set(COMMENTS.PROJECT_ID, user.district.project.id)
+                .set(COMMENTS.DOMAIN, request.domain)
+                .set(COMMENTS.RESOURCE_ID, request.resource.id)
+                .set(COMMENTS.DATA, request.parts.convertToJooqJson())
+                .set(COMMENTS.CREATED_BY_ID, user.id)
+                .set(COMMENTS.UPDATED_BY_ID, user.id)
+                .returningResult(COMMENTS.ID)
+        }.singleOrNull()?.getValue(COMMENTS.ID)
 
-    override fun findOne(request: GetCommentRequest): Comment? {
+        return InsertResponseDto(response)
+    }
+
+    override fun findOne(request: GetCommentRequest): FindOneResponseDto? {
         val response = dsl.run {
             select(
                 c.ID,
@@ -63,10 +64,6 @@ class PostgreSqlRepository(
                             )
                     )
                 ).`as`(HAS_SUB_COMMENTS),
-                concat(
-                    c.CREATED_AT,
-                    lpadByZero(),
-                ).`as`(NEXT_CURSOR),
                 c.LIKE_COUNT,
                 c.DISLIKE_COUNT,
                 c.CREATED_AT,
@@ -75,29 +72,26 @@ class PostgreSqlRepository(
                 c.UPDATED_BY_ID
             ).from(c)
                 .where(c.ID.eq(request.commentId))
+                .apply { if(request.withLock) forUpdate() }
         }.singleOrNull()
 
         return response?.let {
-            Comment(
-                id = it.get(COMMENTS.ID)!!,
+            FindOneResponseDto(
+                id = it.get(COMMENTS.ID),
                 parts = convertToComments(it.get(COMMENTS.DATA)),
-                isDeleted = it.get(COMMENTS.IS_DELETED)!!,
-                hasSubComments = it.get(HAS_SUB_COMMENTS) as Boolean,
-                likeCount = it.get(COMMENTS.LIKE_COUNT)!!,
-                dislikeCount = it.get(COMMENTS.DISLIKE_COUNT)!!,
-                created = Comment.Context(
-                    at = it.get(COMMENTS.CREATED_AT)!!,
-                    by = By(it.get(COMMENTS.CREATED_BY_ID)!!)
-                ),
-                updated = Comment.Context(
-                    at = it.get(COMMENTS.UPDATED_AT)!!,
-                    by = By(it.get(COMMENTS.UPDATED_BY_ID)!!)
-                ),
+                isDeleted = it.get(COMMENTS.IS_DELETED),
+                hasSubComments = it.get(HAS_SUB_COMMENTS) as? Boolean,
+                likeCount = it.get(COMMENTS.LIKE_COUNT),
+                dislikeCount = it.get(COMMENTS.DISLIKE_COUNT),
+                createdAt = it.get(COMMENTS.CREATED_AT),
+                createdBy = it.get(COMMENTS.CREATED_BY_ID),
+                updatedAt = it.get(COMMENTS.UPDATED_AT),
+                updatedBy = it.get(COMMENTS.UPDATED_BY_ID),
             )
         }
     }
 
-    override fun findBy(user: User, request: ListCommentsRequest): Pagination<Comment> {
+    override fun findBy(user: User, request: ListCommentsRequest): FindByResponseDto {
         val limit = request.limit ?: 20L
 
         val response = dsl.run {
@@ -172,30 +166,26 @@ class PostgreSqlRepository(
             response
         }
 
-        return Pagination(
-            results = result.map {
-                Comment(
-                    id = it.get(COMMENTS.ID)!!,
+        return FindByResponseDto(
+            rows = result.map {
+                FindByResponseDto.Row(
+                    id = it.get(COMMENTS.ID),
                     parts = convertToComments(it.get(COMMENTS.DATA)),
-                    isDeleted = it.get(COMMENTS.IS_DELETED)!!,
-                    hasSubComments = it.get(HAS_SUB_COMMENTS) as Boolean,
-                    likeCount = it.get(COMMENTS.LIKE_COUNT)!!,
-                    dislikeCount = it.get(COMMENTS.DISLIKE_COUNT)!!,
-                    created = Comment.Context(
-                        at = it.get(COMMENTS.CREATED_AT)!!,
-                        by = By(it.get(COMMENTS.CREATED_BY_ID)!!)
-                    ),
-                    updated = Comment.Context(
-                        at = it.get(COMMENTS.UPDATED_AT)!!,
-                        by = By(it.get(COMMENTS.UPDATED_BY_ID)!!)
-                    ),
+                    isDeleted = it.get(COMMENTS.IS_DELETED),
+                    hasSubComments = it.get(HAS_SUB_COMMENTS) as? Boolean,
+                    likeCount = it.get(COMMENTS.LIKE_COUNT),
+                    dislikeCount = it.get(COMMENTS.DISLIKE_COUNT),
+                    createdAt = it.get(COMMENTS.CREATED_AT),
+                    createdBy = it.get(COMMENTS.CREATED_BY_ID),
+                    updatedAt = it.get(COMMENTS.UPDATED_AT),
+                    updatedBy = it.get(COMMENTS.UPDATED_BY_ID),
                 )
             },
-            nextCursor = nextCursor,
+            cursor = nextCursor,
         )
     }
 
-    override fun findBy(user: User, request: ListSubCommentsRequest): Pagination<Comment> {
+    override fun findBy(user: User, request: ListSubCommentsRequest): FindByResponseDto {
         val limit = request.limit ?: 20L
 
         val response = dsl.run {
@@ -268,98 +258,61 @@ class PostgreSqlRepository(
             response
         }
 
-        return Pagination(
-            results = result.map {
-                Comment(
-                    id = it.get(COMMENTS.ID)!!,
+        return FindByResponseDto(
+            rows = result.map {
+                FindByResponseDto.Row(
+                    id = it.get(COMMENTS.ID),
                     parts = convertToComments(it.get(COMMENTS.DATA)),
-                    isDeleted = it.get(COMMENTS.IS_DELETED)!!,
-                    hasSubComments = it.get(HAS_SUB_COMMENTS) as Boolean,
-                    likeCount = it.get(COMMENTS.LIKE_COUNT)!!,
-                    dislikeCount = it.get(COMMENTS.DISLIKE_COUNT)!!,
-                    created = Comment.Context(
-                        at = it.get(COMMENTS.CREATED_AT)!!,
-                        by = By(it.get(COMMENTS.CREATED_BY_ID)!!)
-                    ),
-                    updated = Comment.Context(
-                        at = it.get(COMMENTS.UPDATED_AT)!!,
-                        by = By(it.get(COMMENTS.UPDATED_BY_ID)!!)
-                    ),
+                    isDeleted = it.get(COMMENTS.IS_DELETED),
+                    hasSubComments = it.get(HAS_SUB_COMMENTS) as? Boolean,
+                    likeCount = it.get(COMMENTS.LIKE_COUNT),
+                    dislikeCount = it.get(COMMENTS.DISLIKE_COUNT),
+                    createdAt = it.get(COMMENTS.CREATED_AT),
+                    createdBy = it.get(COMMENTS.CREATED_BY_ID),
+                    updatedAt = it.get(COMMENTS.UPDATED_AT),
+                    updatedBy = it.get(COMMENTS.UPDATED_BY_ID),
                 )
             },
-            nextCursor = nextCursor,
+            cursor = nextCursor,
         )
     }
 
-    // TODO: dsl.transactionResult를 사용하지 않도록 수정
-    override fun update(user: User, request: UpdateCommentRequest): Int = dsl.transactionResult { trx ->
-        val comment = trx.dsl()
-            .select(
-                COMMENTS.CREATED_BY_ID
-            )
-            .from(COMMENTS)
-            .where(COMMENTS.ID.eq(request.id))
-            .singleOrNull() ?: throw RuntimeException("there is no comment exists.")
+    override fun update(user: User, request: UpdateCommentRequest): AffectedRows
+        = dsl.run {
+            val response = update(COMMENTS)
+                .set(COMMENTS.UPDATED_AT, LocalDateTime.now())
+                .set(COMMENTS.DATA, request.parts.convertToJooqJson())
+                .where(COMMENTS.ID.eq(request.id))
+                .execute()
 
-        if(comment.getValue(COMMENTS.CREATED_BY_ID) != user.id) {
-            throw RuntimeException("cannot update other's comment.")
+            return AffectedRows(response)
         }
 
-        trx.dsl()
-            .update(COMMENTS)
-            .set(COMMENTS.UPDATED_AT, LocalDateTime.now())
-            .set(COMMENTS.DATA, request.parts.convertToJooqJson())
-            .where(COMMENTS.ID.eq(request.id))
-            .execute()
-    }
+    override fun delete(user: User, request: DeleteCommentRequest): AffectedRows
+        = dsl.run {
+            val response = update(COMMENTS)
+                .set(COMMENTS.UPDATED_AT, LocalDateTime.now())
+                .set(COMMENTS.IS_DELETED, true)
+                .where(COMMENTS.ID.eq(request.id))
+                .execute()
 
-    // TODO: dsl.transactionResult를 사용하지 않도록 수정
-    override fun delete(user: User, request: DeleteCommentRequest): Int = dsl.transactionResult { trx ->
-        val comment = trx.dsl()
-            .select(
-                COMMENTS.CREATED_BY_ID,
-                COMMENTS.IS_DELETED,
-            )
-            .from(COMMENTS)
-            .where(COMMENTS.ID.eq(request.id))
-            .singleOrNull() ?: throw RuntimeException("there is no comment exists.")
-
-        if(comment.getValue(COMMENTS.CREATED_BY_ID) != user.id) {
-            throw RuntimeException("cannot delete other's comment.")
-        }
-        if(comment.getValue(COMMENTS.IS_DELETED) != false) {
-            throw RuntimeException("the comment has already been deleted.")
+            return AffectedRows(response)
         }
 
-        trx.dsl()
-            .update(COMMENTS)
-            .set(COMMENTS.UPDATED_AT, LocalDateTime.now())
-            .set(COMMENTS.IS_DELETED, true)
-            .where(COMMENTS.ID.eq(request.id))
-            .execute()
-    }
+    override fun deleteBy(request: BulkDeleteCommentRequest): AffectedRows
+        = dsl.run {
+            val response = deleteFrom(COMMENTS)
+                .where(COMMENTS.RESOURCE_ID.`in`(request.resourceIds))
+                .and(COMMENTS.DOMAIN.eq(request.domain.value))
+                .execute()
 
-    // TODO: dsl.transactionResult를 사용하지 않도록 수정
-    override fun deleteBy(request: BulkDeleteCommentRequest): Int = dsl.transactionResult { trx ->
-        trx.dsl()
-            .selectOne()
-            .from(COMMENTS)
-            .where(COMMENTS.RESOURCE_ID.`in`(request.resourceIds))
-            .and(COMMENTS.DOMAIN.eq(request.domain.value))
-            .limit(1)
-            .singleOrNull() ?: throw RuntimeException("there is no comment exists.")
+            return AffectedRows(response)
+        }
 
-        trx.dsl()
-            .deleteFrom(COMMENTS)
-            .where(COMMENTS.RESOURCE_ID.`in`(request.resourceIds))
-            .and(COMMENTS.DOMAIN.eq(request.domain.value))
-            .execute()
-    }
-
-    private fun convertToComments(jooqJson: JSON?): List<CommentPart> = jooqJson?.let { json ->
+    private fun convertToComments(jooqJson: JSON?): List<CommentPart>? = jooqJson?.let { json ->
         val mapper = JsonObjectMapper.instance()
         mapper.readValue(json.data().toByteArray(), List::class.java).map {
             mapper.convertValue(it, CommentPart::class.java)
         }
-    } ?: throw InvalidJsonException("Comment cannot be null.")
+    }
 }

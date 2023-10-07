@@ -9,4 +9,8 @@
 * `@Value` 말고 `@ConfigurationProperties` 쓰게 바꿔보자
 
 ## PostgreSqlRepository
-* trx를 전부 다 제거할 것! 간단히 사용할 수 있는 `isExist` Outgoing Port를 만들어두면 좋을 것 같다.
+* ~~trx를 전부 다 제거할 것! 간단히 사용할 수 있는 `isExist` Outgoing Port를 만들어두면 좋을 것 같다~~.
+  * update: commentId 기반 조회 후, 없는 경우에만 404 / 있으면 업데이트
+  * delete: 역시 commentId 기반 조회 후, 없는 경우에 404 / 다른 사람의 댓글인 경우 / 또는 이미 제거된 경우(is_deleted) BRE
+    * 모든 조건 충족시 update만 해야 함
+  * deleteBy: resourceId 및 domain 기반 조회 후, 아무것도 없으면 BRE / 있으면 진짜로 제거 
