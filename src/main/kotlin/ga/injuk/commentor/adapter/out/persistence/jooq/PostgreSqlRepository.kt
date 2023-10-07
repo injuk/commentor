@@ -70,7 +70,8 @@ class PostgreSqlRepository(
                 c.CREATED_BY_ID,
                 c.UPDATED_AT,
                 c.UPDATED_BY_ID
-            ).from(c)
+            )
+                .from(c)
                 .where(c.ID.eq(request.commentId))
                 .apply { if(request.withLock) forUpdate() }
         }.singleOrNull()

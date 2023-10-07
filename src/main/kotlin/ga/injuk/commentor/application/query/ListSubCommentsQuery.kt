@@ -1,22 +1,17 @@
 package ga.injuk.commentor.application.query
 
-import ga.injuk.commentor.adapter.exception.BadRequestException
 import ga.injuk.commentor.adapter.exception.ResourceNotFoundException
 import ga.injuk.commentor.application.Base64Helper
 import ga.injuk.commentor.application.port.dto.IdEncodedComment
 import ga.injuk.commentor.application.port.dto.Pagination
 import ga.injuk.commentor.application.port.dto.request.GetCommentRequest
-import ga.injuk.commentor.application.port.dto.request.ListCommentsRequest
 import ga.injuk.commentor.application.port.dto.request.ListSubCommentsRequest
 import ga.injuk.commentor.application.port.dto.response.ListCommentsResponse
-import ga.injuk.commentor.application.port.`in`.ListCommentsUseCase
 import ga.injuk.commentor.application.port.`in`.ListSubCommentsUseCase
 import ga.injuk.commentor.application.port.out.persistence.GetCommentPort
-import ga.injuk.commentor.application.port.out.persistence.ListCommentsPort
 import ga.injuk.commentor.application.port.out.persistence.ListSubCommentsPort
 import ga.injuk.commentor.common.IdConverter
 import ga.injuk.commentor.domain.User
-import ga.injuk.commentor.domain.model.Comment
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
@@ -30,10 +25,8 @@ class ListSubCommentsQuery(
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     override fun execute(user: User, data: ListSubCommentsRequest): ListCommentsResponse {
-        val comment = getCommentPort.get(user, GetCommentRequest(data.parentId))
-        if(comment == null) {
-            throw ResourceNotFoundException("there is no comment")
-        }
+        getCommentPort.get(user, GetCommentRequest(commentId = data.parentId))
+            ?: throw ResourceNotFoundException("there is no comment")
 
         val (results, nextCursor) = listSubCommentsPort.getList(
             user = user,
