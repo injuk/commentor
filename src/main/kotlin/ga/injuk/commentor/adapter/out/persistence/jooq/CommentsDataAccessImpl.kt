@@ -3,12 +3,13 @@ package ga.injuk.commentor.adapter.out.persistence.jooq
 import com.mzc.cloudplex.download.persistence.jooq.tables.references.COMMENTS
 import ga.injuk.commentor.adapter.core.extension.convertToJooqJson
 import ga.injuk.commentor.adapter.out.dto.AffectedRows
-import ga.injuk.commentor.adapter.out.dto.ListCommentsResponse
-import ga.injuk.commentor.adapter.out.dto.GetCommentResponse
 import ga.injuk.commentor.adapter.out.dto.CreateCommentResponse
+import ga.injuk.commentor.adapter.out.dto.GetCommentResponse
+import ga.injuk.commentor.adapter.out.dto.ListCommentsResponse
 import ga.injuk.commentor.adapter.out.persistence.CommentsDataAccess
 import ga.injuk.commentor.application.JsonObjectMapper
 import ga.injuk.commentor.application.port.dto.request.*
+import ga.injuk.commentor.application.port.dto.request.UpdateCommentRequest.InteractionType.*
 import ga.injuk.commentor.domain.User
 import ga.injuk.commentor.domain.model.CommentPart
 import org.jooq.DSLContext
@@ -282,7 +283,19 @@ class CommentsDataAccessImpl(
         = dsl.run {
             val response = update(COMMENTS)
                 .set(COMMENTS.UPDATED_AT, LocalDateTime.now())
-                .set(COMMENTS.DATA, request.parts.convertToJooqJson())
+                .apply {
+                    request.parts?.let {
+                        set(COMMENTS.DATA, it.convertToJooqJson())
+                    }
+                    request.interactionType?.let {
+                        when(it) {
+                            LIKE -> set(COMMENTS.LIKE_COUNT, COMMENTS.LIKE_COUNT.plus(1))
+                            CANCEL_LIKE -> set(COMMENTS.LIKE_COUNT, COMMENTS.LIKE_COUNT.minus(1))
+                            DISLIKE -> set(COMMENTS.DISLIKE_COUNT, COMMENTS.DISLIKE_COUNT.plus(1))
+                            CANCEL_DISLIKE -> set(COMMENTS.LIKE_COUNT, COMMENTS.DISLIKE_COUNT.minus(1))
+                        }
+                    }
+                }
                 .where(COMMENTS.ID.eq(request.id))
                 .execute()
 
