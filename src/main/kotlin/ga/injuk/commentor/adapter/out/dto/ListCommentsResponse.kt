@@ -3,7 +3,7 @@ package ga.injuk.commentor.adapter.out.dto
 import ga.injuk.commentor.domain.model.CommentPart
 import java.time.LocalDateTime
 
-data class FindByResponseDto(
+data class ListCommentsResponse(
     val rows: List<Row>,
     val cursor: String?,
 ) {

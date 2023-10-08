@@ -3,10 +3,10 @@ package ga.injuk.commentor.adapter.out.persistence.jooq
 import com.mzc.cloudplex.download.persistence.jooq.tables.references.COMMENTS
 import ga.injuk.commentor.adapter.core.extension.convertToJooqJson
 import ga.injuk.commentor.adapter.out.dto.AffectedRows
-import ga.injuk.commentor.adapter.out.dto.FindByResponseDto
-import ga.injuk.commentor.adapter.out.dto.FindOneResponseDto
-import ga.injuk.commentor.adapter.out.dto.InsertResponseDto
-import ga.injuk.commentor.adapter.out.persistence.CommentorRepository
+import ga.injuk.commentor.adapter.out.dto.ListCommentsResponse
+import ga.injuk.commentor.adapter.out.dto.GetCommentResponse
+import ga.injuk.commentor.adapter.out.dto.CreateCommentResponse
+import ga.injuk.commentor.adapter.out.persistence.CommentsDataAccess
 import ga.injuk.commentor.application.JsonObjectMapper
 import ga.injuk.commentor.application.port.dto.request.*
 import ga.injuk.commentor.domain.User
@@ -18,9 +18,9 @@ import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 
 @Repository
-class PostgreSqlRepository(
+class CommentsDataAccessImpl(
     private val dsl: DSLContext,
-) : CommentorRepository {
+): CommentsDataAccess {
     companion object {
         private const val HAS_SUB_COMMENTS = "hasSubComments"
         private const val NEXT_CURSOR = "nextCursor"
@@ -31,7 +31,7 @@ class PostgreSqlRepository(
         private fun lpadByZero() = lpad(c.ID.cast(String::class.java), 10, "0")
     }
 
-    override fun insert(user: User, request: CreateCommentRequest): InsertResponseDto {
+    override fun insert(user: User, request: CreateCommentRequest): CreateCommentResponse {
         val response = dsl.run {
             insertInto(COMMENTS)
                 .set(COMMENTS.ORG_ID, user.district.organization?.id)
@@ -44,10 +44,10 @@ class PostgreSqlRepository(
                 .returningResult(COMMENTS.ID)
         }.singleOrNull()?.getValue(COMMENTS.ID)
 
-        return InsertResponseDto(response)
+        return CreateCommentResponse(response)
     }
 
-    override fun findOne(request: GetCommentRequest): FindOneResponseDto? {
+    override fun findOne(request: GetCommentRequest): GetCommentResponse? {
         val response = dsl.run {
             select(
                 c.ID,
@@ -77,7 +77,7 @@ class PostgreSqlRepository(
         }.singleOrNull()
 
         return response?.let {
-            FindOneResponseDto(
+            GetCommentResponse(
                 id = it.get(COMMENTS.ID),
                 parts = convertToComments(it.get(COMMENTS.DATA)),
                 isDeleted = it.get(COMMENTS.IS_DELETED),
@@ -92,7 +92,7 @@ class PostgreSqlRepository(
         }
     }
 
-    override fun findBy(user: User, request: ListCommentsRequest): FindByResponseDto {
+    override fun findBy(user: User, request: ListCommentsRequest): ListCommentsResponse {
         val limit = request.limit ?: 20L
 
         val response = dsl.run {
@@ -167,9 +167,9 @@ class PostgreSqlRepository(
             response
         }
 
-        return FindByResponseDto(
+        return ListCommentsResponse(
             rows = result.map {
-                FindByResponseDto.Row(
+                ListCommentsResponse.Row(
                     id = it.get(COMMENTS.ID),
                     parts = convertToComments(it.get(COMMENTS.DATA)),
                     isDeleted = it.get(COMMENTS.IS_DELETED),
@@ -186,7 +186,7 @@ class PostgreSqlRepository(
         )
     }
 
-    override fun findBy(user: User, request: ListSubCommentsRequest): FindByResponseDto {
+    override fun findBy(user: User, request: ListSubCommentsRequest): ListCommentsResponse {
         val limit = request.limit ?: 20L
 
         val response = dsl.run {
@@ -259,9 +259,9 @@ class PostgreSqlRepository(
             response
         }
 
-        return FindByResponseDto(
+        return ListCommentsResponse(
             rows = result.map {
-                FindByResponseDto.Row(
+                ListCommentsResponse.Row(
                     id = it.get(COMMENTS.ID),
                     parts = convertToComments(it.get(COMMENTS.DATA)),
                     isDeleted = it.get(COMMENTS.IS_DELETED),

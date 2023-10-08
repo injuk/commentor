@@ -1,5 +1,5 @@
 package ga.injuk.commentor.adapter.out.dto
 
-data class InsertResponseDto(
+data class CreateCommentResponse(
     val commentId: Long?
 )

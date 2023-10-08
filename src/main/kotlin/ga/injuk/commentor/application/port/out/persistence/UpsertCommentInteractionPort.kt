@@ -4,5 +4,5 @@ import ga.injuk.commentor.application.port.dto.request.UpsertCommentInteractionR
 import ga.injuk.commentor.domain.User
 
 interface UpsertCommentInteractionPort {
-    fun upsert(user: User, request: UpsertCommentInteractionRequest): Long
+    fun upsert(user: User, request: UpsertCommentInteractionRequest): Int
 }
