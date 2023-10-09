@@ -2,68 +2,80 @@ package ga.injuk.commentor.application.command
 
 import ga.injuk.commentor.adapter.core.exception.ResourceNotFoundException
 import ga.injuk.commentor.application.port.dto.request.*
-import ga.injuk.commentor.application.port.dto.request.UpdateCommentRequest.InteractionType.*
 import ga.injuk.commentor.application.port.`in`.ActionCommentUseCase
-import ga.injuk.commentor.application.port.out.persistence.DeleteCommentInteractionPort
-import ga.injuk.commentor.application.port.out.persistence.GetCommentInteractionPort
-import ga.injuk.commentor.application.port.out.persistence.GetCommentPort
-import ga.injuk.commentor.application.port.out.persistence.UpsertCommentInteractionPort
+import ga.injuk.commentor.application.port.out.persistence.*
 import ga.injuk.commentor.domain.User
 import ga.injuk.commentor.domain.model.CommentInteractionType
+import ga.injuk.commentor.domain.model.CommentInteractionType.*
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
 class ActionCommentCommand(
     private val getCommentPort: GetCommentPort,
+    private val updateCommentPort: UpdateCommentPort,
+
+    private val createCommentInteractionPort: CreateCommentInteractionPort,
     private val getCommentInteractionPort: GetCommentInteractionPort,
     private val deleteCommentInteractionPort: DeleteCommentInteractionPort,
-    private val upsertCommentInteractionPort: UpsertCommentInteractionPort,
+    private val updateCommentInteractionPort: UpdateCommentInteractionPort,
 ): ActionCommentUseCase {
 
     @Transactional
     override fun execute(user: User, data: ActionCommentRequest) {
         val (commentId, requestedAction) = data
-        val comment = getCommentPort.get(user, GetCommentRequest(commentId, withLock = true))
+
+        getCommentPort.get(user, GetCommentRequest(commentId, withLock = true))
             ?: throw ResourceNotFoundException("there is no comment")
 
-        var temp: UpdateCommentRequest.InteractionType? = null
         val commentInteraction = getCommentInteractionPort.get(user, GetCommentInteractionRequest(commentId, withLock = true))
-        if(commentInteraction != null) {
-            // 이미 좋아요 / 싫어요 한 댓글이다
-
-            if(requestedAction == commentInteraction.type) {
-                // 요청된 action이랑, 이미 있던 action이 같으므로 interaction을 취소한다
-                deleteCommentInteractionPort.delete(user, DeleteCommentInteractionRequest(commentId))
-
-                if(requestedAction == CommentInteractionType.LIKE) {
-                    // likeCount를 하나 빼야 한다
-                    temp = CANCEL_LIKE
-                } else {
-                    // dislikeCount를 하나 빼야 한다
-                    temp = CANCEL_DISLIKE
-                }
-            } else {
-                // 요청된 action이랑, 이미 있던 action이 다르므로 기존의 count는 빼고 현재 요청된 count는 추가해야 한다
-                // TODO: 여기 해야함...
-
-                upsertCommentInteractionPort.upsert(user, UpsertCommentInteractionRequest(
-                    commentId = commentId,
-                    interactionType = requestedAction,
-                ))
-            }
+        val interactions = if(commentInteraction == null) {
+            getInteractionForNewAction(user, commentId, requestedAction)
+        } else if(requestedAction == commentInteraction.type) {
+            getInteractionForCancelAction(user, commentId, requestedAction)
         } else {
-            // 최초로 좋아요 / 싫어요 한 댓글이므로 그냥 추가한다
-            upsertCommentInteractionPort.upsert(user, UpsertCommentInteractionRequest(
-                commentId = commentId,
-                interactionType = requestedAction,
-            ))
+            getInteractionForSwitchAction(user, commentId, requestedAction)
+        }
 
-            if(requestedAction == CommentInteractionType.LIKE) {
-                temp = LIKE
-            } else {
-                temp = DISLIKE
-            }
+        updateCommentPort.update(user, UpdateCommentRequest(commentId, interactions = interactions))
+    }
+
+    private fun getInteractionForNewAction(user: User, commentId: Long, requestedAction: CommentInteractionType): List<UpdateCommentRequest.Interaction> {
+        createCommentInteractionPort.create(user, CreateCommentInteractionRequest(
+            commentId = commentId,
+            interactionType = requestedAction,
+        ))
+
+        return listOf(UpdateCommentRequest.Interaction(type = requestedAction))
+    }
+
+    private fun getInteractionForCancelAction(user: User, commentId: Long, requestedAction: CommentInteractionType): List<UpdateCommentRequest.Interaction> {
+        deleteCommentInteractionPort.delete(user, DeleteCommentInteractionRequest(commentId = commentId))
+
+        return listOf(UpdateCommentRequest.Interaction(
+            type = requestedAction,
+            isCancelAction = true,
+        ))
+    }
+
+    private fun getInteractionForSwitchAction(user: User, commentId: Long, requestedAction: CommentInteractionType): List<UpdateCommentRequest.Interaction> {
+        updateCommentInteractionPort.update(user, UpdateCommentInteractionRequest(
+            commentId = commentId,
+            interactionType = requestedAction,
+        ))
+
+        return if(requestedAction == LIKE) {
+            // 저장된게 싫어요였을 것이므로 싫어요는 하나 빼고, 좋아요를 하나 늘린다
+            listOf(
+                UpdateCommentRequest.Interaction(type = DISLIKE, isCancelAction = true),
+                UpdateCommentRequest.Interaction(type = LIKE),
+            )
+        } else {
+            // 저장된게 좋아요였을 것이므로 좋아요는 하나 빼고, 싫어요를 하나 늘린다
+            listOf(
+                UpdateCommentRequest.Interaction(type = LIKE, isCancelAction = true),
+                UpdateCommentRequest.Interaction(type = DISLIKE),
+            )
         }
     }
 }

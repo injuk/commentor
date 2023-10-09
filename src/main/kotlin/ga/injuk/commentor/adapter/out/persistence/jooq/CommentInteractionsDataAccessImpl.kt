@@ -2,11 +2,13 @@ package ga.injuk.commentor.adapter.out.persistence.jooq
 
 import com.mzc.cloudplex.download.persistence.jooq.tables.references.COMMENT_INTERACTIONS
 import ga.injuk.commentor.adapter.out.dto.AffectedRows
+import ga.injuk.commentor.adapter.out.dto.CreateCommentInteractionResponse
 import ga.injuk.commentor.adapter.out.dto.GetCommentInteractionResponse
 import ga.injuk.commentor.adapter.out.persistence.CommentInteractionsDataAccess
+import ga.injuk.commentor.application.port.dto.request.CreateCommentInteractionRequest
 import ga.injuk.commentor.application.port.dto.request.DeleteCommentInteractionRequest
 import ga.injuk.commentor.application.port.dto.request.GetCommentInteractionRequest
-import ga.injuk.commentor.application.port.dto.request.UpsertCommentInteractionRequest
+import ga.injuk.commentor.application.port.dto.request.UpdateCommentInteractionRequest
 import ga.injuk.commentor.domain.User
 import org.jooq.DSLContext
 import org.springframework.stereotype.Repository
@@ -15,16 +17,25 @@ import org.springframework.stereotype.Repository
 class CommentInteractionsDataAccessImpl(
     private val dsl: DSLContext,
 ): CommentInteractionsDataAccess {
-    override fun upsert(user: User, request: UpsertCommentInteractionRequest): AffectedRows {
+
+    override fun insert(user: User, request: CreateCommentInteractionRequest): CreateCommentInteractionResponse {
         val response = dsl.run {
             insertInto(COMMENT_INTERACTIONS)
                 .set(COMMENT_INTERACTIONS.COMMENT_ID, request.commentId)
                 .set(COMMENT_INTERACTIONS.TYPE, request.interactionType.value)
                 .set(COMMENT_INTERACTIONS.USER_ID, user.id)
-                .onDuplicateKeyUpdate()
-                .set(COMMENT_INTERACTIONS.COMMENT_ID, request.commentId)
+                .returningResult(COMMENT_INTERACTIONS.ID)
+        }.singleOrNull()?.getValue(COMMENT_INTERACTIONS.ID)
+
+        return CreateCommentInteractionResponse(response)
+    }
+
+    override fun update(user: User, request: UpdateCommentInteractionRequest): AffectedRows {
+        val response = dsl.run {
+            update(COMMENT_INTERACTIONS)
                 .set(COMMENT_INTERACTIONS.TYPE, request.interactionType.value)
-                .set(COMMENT_INTERACTIONS.USER_ID, user.id)
+                .where(COMMENT_INTERACTIONS.COMMENT_ID.eq(request.commentId))
+                .and(COMMENT_INTERACTIONS.USER_ID.eq(user.id))
                 .execute()
         }
 

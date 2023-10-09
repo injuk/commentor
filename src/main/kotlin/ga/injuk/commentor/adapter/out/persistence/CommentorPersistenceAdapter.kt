@@ -20,7 +20,7 @@ class CommentorPersistenceAdapter(
     private val commentsDataAccess: CommentsDataAccess,
     private val commentInteractionsDataAccess: CommentInteractionsDataAccess,
 ): CreateCommentPort, GetCommentPort, ListCommentsPort, ListSubCommentsPort, UpdateCommentPort, DeleteCommentPort, BulkDeleteCommentPort,
-GetCommentInteractionPort, UpsertCommentInteractionPort, DeleteCommentInteractionPort {
+CreateCommentInteractionPort, GetCommentInteractionPort, UpdateCommentInteractionPort, DeleteCommentInteractionPort {
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
     override fun create(user: User, request: CreateCommentRequest): Long {
@@ -94,6 +94,15 @@ GetCommentInteractionPort, UpsertCommentInteractionPort, DeleteCommentInteractio
         return affectedRows.count ?: throw UncaughtException("failed to delete comment")
     }
 
+    override fun create(user: User, request: CreateCommentInteractionRequest): Long {
+        val (insertId) = commentInteractionsDataAccess.insert(user, request)
+        if(insertId == null) {
+            throw UncaughtException("failed to create comment interaction resource.")
+        }
+
+        return insertId
+    }
+
     override fun get(user: User, request: GetCommentInteractionRequest): CommentInteraction? {
         val commentInteractionRow = commentInteractionsDataAccess.findOne(user, request)
 
@@ -105,8 +114,8 @@ GetCommentInteractionPort, UpsertCommentInteractionPort, DeleteCommentInteractio
         )
     }
 
-    override fun upsert(user: User, request: UpsertCommentInteractionRequest): Int {
-        val affectedRows = commentInteractionsDataAccess.upsert(user, request)
+    override fun update(user: User, request: UpdateCommentInteractionRequest): Int {
+        val affectedRows = commentInteractionsDataAccess.update(user, request)
 
         return affectedRows.count ?: throw UncaughtException("failed to upsert comment interaction")
     }
