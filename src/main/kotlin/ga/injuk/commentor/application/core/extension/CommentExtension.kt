@@ -8,6 +8,7 @@ internal fun Comment.refineWith(id: String)
         id = id,
         isDeleted = this.isDeleted,
         hasSubComments = this.hasSubComments,
+        myInteraction = this.myInteraction,
         likeCount = this.likeCount,
         dislikeCount = this.dislikeCount,
         created = this.created,

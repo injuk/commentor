@@ -1,6 +1,7 @@
 package ga.injuk.commentor.application.port.dto
 
 import ga.injuk.commentor.domain.model.Comment
+import ga.injuk.commentor.domain.model.CommentInteractionType
 import ga.injuk.commentor.domain.model.CommentPart
 
 data class IdEncodedComment(
@@ -12,17 +13,6 @@ data class IdEncodedComment(
     val dislikeCount: Long,
     val created: Comment.Context,
     val updated: Comment.Context,
-) {
-    companion object {
-        fun of(id: String, comment: Comment) = IdEncodedComment(
-            id = id,
-            parts = comment.parts,
-            isDeleted = comment.isDeleted,
-            hasSubComments = comment.hasSubComments,
-            likeCount = comment.likeCount,
-            dislikeCount = comment.dislikeCount,
-            created = comment.created,
-            updated = comment.updated,
-        )
-    }
-}
+
+    val myInteraction: CommentInteractionType? = null,
+)

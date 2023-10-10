@@ -11,6 +11,8 @@ data class Comment(
     val dislikeCount: Long,
     val created: Context,
     val updated: Context,
+
+    val myInteraction: CommentInteractionType? = null,
 ) {
     data class Context(
         val at: LocalDateTime,

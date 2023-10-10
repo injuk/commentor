@@ -8,6 +8,7 @@ data class GetCommentResponse(
     val parts: List<CommentPart>?,
     val isDeleted: Boolean?,
     val hasSubComments: Boolean?,
+    val myInteractionType: String?,
     val likeCount: Long?,
     val dislikeCount: Long?,
     val createdAt: LocalDateTime?,

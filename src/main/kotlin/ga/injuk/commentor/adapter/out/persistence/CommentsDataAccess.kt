@@ -10,7 +10,7 @@ import ga.injuk.commentor.domain.User
 interface CommentsDataAccess {
     fun insert(user: User, request: CreateCommentRequest): CreateCommentResponse
 
-    fun findOne(request: GetCommentRequest): GetCommentResponse?
+    fun findOne(user: User, request: GetCommentRequest): GetCommentResponse?
 
     fun findBy(user: User, request: ListCommentsRequest): ListCommentsResponse
 

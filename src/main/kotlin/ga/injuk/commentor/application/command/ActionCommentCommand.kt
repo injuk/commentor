@@ -29,6 +29,7 @@ class ActionCommentCommand(
             ?: throw ResourceNotFoundException("there is no comment")
 
         val commentInteraction = getCommentInteractionPort.get(user, GetCommentInteractionRequest(commentId, withLock = true))
+        // TODO: 팩토리 + 전략패턴으로 수정하기
         val interactions = if(commentInteraction == null) {
             getInteractionForNewAction(user, commentId, requestedAction)
         } else if(requestedAction == commentInteraction.type) {

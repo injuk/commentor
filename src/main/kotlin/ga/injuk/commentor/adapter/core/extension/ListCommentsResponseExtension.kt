@@ -3,6 +3,7 @@ package ga.injuk.commentor.adapter.core.extension
 import ga.injuk.commentor.application.port.dto.IdEncodedComment
 import ga.injuk.commentor.application.port.dto.response.ListCommentsResponse
 import ga.injuk.commentor.domain.model.*
+import ga.injuk.commentor.models.MyInteraction
 
 internal fun ListCommentsResponse.convert()
     = this.run {
@@ -20,6 +21,14 @@ private fun List<IdEncodedComment>.convertToListOfComments()
             parts = it.parts.map { part -> part.convertToGeneratedCommentPart() },
             isDeleted = it.isDeleted,
             hasSubComments = it.hasSubComments,
+            myInteraction = it.myInteraction?.let { interaction ->
+                MyInteraction(
+                    type = when(interaction) {
+                        CommentInteractionType.LIKE -> MyInteraction.Type.LIKE
+                        CommentInteractionType.DISLIKE -> MyInteraction.Type.DISLIKE
+                    }
+                )
+            },
             likeCount = it.likeCount,
             dislikeCount = it.dislikeCount,
             created = ga.injuk.commentor.models.CommentCreated(

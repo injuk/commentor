@@ -1,6 +1,7 @@
 package ga.injuk.commentor.adapter.out.persistence.jooq
 
 import com.mzc.cloudplex.download.persistence.jooq.tables.references.COMMENTS
+import com.mzc.cloudplex.download.persistence.jooq.tables.references.COMMENT_INTERACTIONS
 import ga.injuk.commentor.adapter.core.extension.convertToJooqJson
 import ga.injuk.commentor.adapter.out.dto.AffectedRows
 import ga.injuk.commentor.adapter.out.dto.CreateCommentResponse
@@ -48,7 +49,7 @@ class CommentsDataAccessImpl(
         return CreateCommentResponse(response)
     }
 
-    override fun findOne(request: GetCommentRequest): GetCommentResponse? {
+    override fun findOne(user: User, request: GetCommentRequest): GetCommentResponse? {
         val response = dsl.run {
             select(
                 c.ID,
@@ -65,6 +66,7 @@ class CommentsDataAccessImpl(
                             )
                     )
                 ).`as`(HAS_SUB_COMMENTS),
+                COMMENT_INTERACTIONS.TYPE,
                 c.LIKE_COUNT,
                 c.DISLIKE_COUNT,
                 c.CREATED_AT,
@@ -73,6 +75,11 @@ class CommentsDataAccessImpl(
                 c.UPDATED_BY_ID
             )
                 .from(c)
+                .leftJoin(COMMENT_INTERACTIONS)
+                .on(
+                    COMMENT_INTERACTIONS.COMMENT_ID.eq(c.ID)
+                        .and(COMMENT_INTERACTIONS.USER_ID.eq(user.id))
+                )
                 .where(c.ID.eq(request.commentId))
                 .apply { if(request.withLock) forUpdate() }
         }.singleOrNull()
@@ -83,6 +90,7 @@ class CommentsDataAccessImpl(
                 parts = convertToComments(it.get(COMMENTS.DATA)),
                 isDeleted = it.get(COMMENTS.IS_DELETED),
                 hasSubComments = it.get(HAS_SUB_COMMENTS) as? Boolean,
+                myInteractionType = it.get(COMMENT_INTERACTIONS.TYPE),
                 likeCount = it.get(COMMENTS.LIKE_COUNT),
                 dislikeCount = it.get(COMMENTS.DISLIKE_COUNT),
                 createdAt = it.get(COMMENTS.CREATED_AT),
@@ -116,6 +124,7 @@ class CommentsDataAccessImpl(
                     c.CREATED_AT,
                     lpadByZero(),
                 ).`as`(NEXT_CURSOR),
+                COMMENT_INTERACTIONS.TYPE,
                 c.LIKE_COUNT,
                 c.DISLIKE_COUNT,
                 c.CREATED_AT,
@@ -123,6 +132,11 @@ class CommentsDataAccessImpl(
                 c.UPDATED_AT,
                 c.UPDATED_BY_ID
             ).from(c)
+                .leftJoin(COMMENT_INTERACTIONS)
+                .on(
+                    COMMENT_INTERACTIONS.COMMENT_ID.eq(c.ID)
+                        .and(COMMENT_INTERACTIONS.USER_ID.eq(user.id))
+                )
                 .where(c.PROJECT_ID.eq(user.district.project.id))
                 .and(
                     user.district.organization?.id?.let { c.ORG_ID.eq(it) } ?: noCondition()
@@ -175,6 +189,7 @@ class CommentsDataAccessImpl(
                     parts = convertToComments(it.get(COMMENTS.DATA)),
                     isDeleted = it.get(COMMENTS.IS_DELETED),
                     hasSubComments = it.get(HAS_SUB_COMMENTS) as? Boolean,
+                    myInteractionType = it.get(COMMENT_INTERACTIONS.TYPE),
                     likeCount = it.get(COMMENTS.LIKE_COUNT),
                     dislikeCount = it.get(COMMENTS.DISLIKE_COUNT),
                     createdAt = it.get(COMMENTS.CREATED_AT),
@@ -210,6 +225,7 @@ class CommentsDataAccessImpl(
                     c.CREATED_AT,
                     lpadByZero(),
                 ).`as`(NEXT_CURSOR),
+                COMMENT_INTERACTIONS.TYPE,
                 c.LIKE_COUNT,
                 c.DISLIKE_COUNT,
                 c.CREATED_AT,
@@ -217,6 +233,11 @@ class CommentsDataAccessImpl(
                 c.UPDATED_AT,
                 c.UPDATED_BY_ID
             ).from(c)
+                .leftJoin(COMMENT_INTERACTIONS)
+                .on(
+                    COMMENT_INTERACTIONS.COMMENT_ID.eq(c.ID)
+                        .and(COMMENT_INTERACTIONS.USER_ID.eq(user.id))
+                )
                 .where(c.PROJECT_ID.eq(user.district.project.id))
                 .and(
                     user.district.organization?.id?.let { c.ORG_ID.eq(it) } ?: noCondition()
@@ -267,6 +288,7 @@ class CommentsDataAccessImpl(
                     parts = convertToComments(it.get(COMMENTS.DATA)),
                     isDeleted = it.get(COMMENTS.IS_DELETED),
                     hasSubComments = it.get(HAS_SUB_COMMENTS) as? Boolean,
+                    myInteractionType = it.get(COMMENT_INTERACTIONS.TYPE),
                     likeCount = it.get(COMMENTS.LIKE_COUNT),
                     dislikeCount = it.get(COMMENTS.DISLIKE_COUNT),
                     createdAt = it.get(COMMENTS.CREATED_AT),
