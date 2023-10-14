@@ -3,8 +3,19 @@ package ga.injuk.commentor.adapter.core.extension
 import ga.injuk.commentor.domain.model.CommentDomain
 import ga.injuk.commentor.models.*
 
-internal fun CreateCommentRequest?.convert()
-    = this?.run {
+internal fun CreateCommentRequest.convert()
+    = this.run {
+        ga.injuk.commentor.application.port.dto.request.CreateCommentRequest(
+            domain = this.domain ?: CommentDomain.NONE.value,
+            resource = ga.injuk.commentor.application.port.dto.Resource(
+                id = this.resource.id,
+            ),
+            parts = this.parts.map { it.convert() }
+        )
+    }
+
+internal fun CreateSubCommentRequest.convert()
+    = this.run {
         ga.injuk.commentor.application.port.dto.request.CreateCommentRequest(
             domain = this.domain ?: CommentDomain.NONE.value,
             resource = ga.injuk.commentor.application.port.dto.Resource(

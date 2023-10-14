@@ -41,6 +41,7 @@ class CommentsDataAccessImpl(
                 .set(COMMENTS.DOMAIN, request.domain)
                 .set(COMMENTS.RESOURCE_ID, request.resource.id)
                 .set(COMMENTS.DATA, request.parts.convertToJooqJson())
+                .set(COMMENTS.PARENT_ID, request.parentId)
                 .set(COMMENTS.CREATED_BY_ID, user.id)
                 .set(COMMENTS.UPDATED_BY_ID, user.id)
                 .returningResult(COMMENTS.ID)

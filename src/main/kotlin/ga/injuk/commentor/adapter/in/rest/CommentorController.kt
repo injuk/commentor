@@ -1,6 +1,7 @@
 package ga.injuk.commentor.adapter.`in`.rest
 
 import ga.injuk.commentor.adapter.core.exception.InvalidArgumentException
+import ga.injuk.commentor.adapter.core.exception.UncaughtException
 import ga.injuk.commentor.adapter.core.extension.convert
 import ga.injuk.commentor.application.port.dto.Resource
 import ga.injuk.commentor.application.port.dto.request.*
@@ -9,6 +10,7 @@ import ga.injuk.commentor.common.IdConverter
 import ga.injuk.commentor.domain.User
 import ga.injuk.commentor.domain.model.*
 import ga.injuk.commentor.models.*
+import ga.injuk.commentor.models.ActionCommentRequest
 import ga.injuk.commentor.models.CreateCommentRequest
 import ga.injuk.commentor.operations.CommentApi
 import org.slf4j.LoggerFactory
@@ -23,6 +25,7 @@ class CommentorController(
     private val updateComment: UpdateCommentUseCase,
     private val deleteComment: DeleteCommentUseCase,
     private val bulkDeleteComments: BulkDeleteCommentUseCase,
+    private val actionComment: ActionCommentUseCase,
     private val idConverter: IdConverter,
 ): CommentApi {
     private val logger = LoggerFactory.getLogger(this.javaClass)
@@ -38,13 +41,13 @@ class CommentorController(
             .setProject(projectId)
             .setOrganization(organizationId)
             .build()
-        val result = createComment.execute(
-            user = user,
-            data = createCommentRequest?.convert() ?: throw InvalidArgumentException("Request has invalid data.")
-        )
+
+        val data = createCommentRequest.tryRemoveNullability()
+            .convert()
+        val (id) = createComment.execute(user, data)
 
         return ResponseEntity.ok(
-            CreateCommentResponse(result.id)
+            CreateCommentResponse(id)
         )
     }
 
@@ -62,6 +65,7 @@ class CommentorController(
             .setProject(projectId)
             .setOrganization(organizationId)
             .build()
+
         val result = listComments.execute(
             user = user,
             data = ListCommentsRequest(
@@ -75,7 +79,9 @@ class CommentorController(
             )
         )
 
-        return ResponseEntity.ok(result.convert())
+        return ResponseEntity.ok(
+            result.convert()
+        )
     }
 
     override fun listSubComments(
@@ -92,17 +98,17 @@ class CommentorController(
             .setOrganization(organizationId)
             .build()
 
-        val (results, nextCursor) = listSubComments.execute(
+        val (results, cursor) = listSubComments.execute(
             user = user,
             data = ListSubCommentsRequest(
                 limit = limit?.toLong(),
                 nextCursor = nextCursor,
-                parentId = idConverter.decode(id) ?: throw InvalidArgumentException("Request has invalid data."),
+                parentId = id.decodeToLong()
             )
         ).convert()
 
         return ResponseEntity.ok(
-            ListSubCommentsResponse(results, nextCursor)
+            ListSubCommentsResponse(results, cursor)
         )
     }
 
@@ -118,16 +124,18 @@ class CommentorController(
             .setProject(projectId)
             .setOrganization(organizationId)
             .build()
-        val result = updateComment.execute(
+
+        val request = patchCommentRequest.tryRemoveNullability()
+        val (id) = updateComment.execute(
             user = user,
             data = UpdateCommentRequest(
-                id = idConverter.decode(id) ?: throw InvalidArgumentException("Request has invalid data."),
-                parts = patchCommentRequest?.parts?.map { it.convert() } ?: throw InvalidArgumentException("Request has invalid data.")
+                id = id.decodeToLong(),
+                parts = request.parts.map { it.convert() }
             )
         )
 
         return ResponseEntity.ok(
-            PatchCommentResponse(result.id)
+            PatchCommentResponse(id)
         )
     }
 
@@ -145,58 +153,95 @@ class CommentorController(
 
         deleteComment.execute(
             user = user,
-            data = DeleteCommentRequest(
-                id = idConverter.decode(id) ?: throw InvalidArgumentException("Request has invalid data."),
-            )
+            data = DeleteCommentRequest(id.decodeToLong())
         )
 
-        return ResponseEntity.noContent().build()
+        return responseWithNoContent()
     }
 
-    override fun bulkDeleteComments(
+    override fun actionComments(
         authorization: String,
         projectId: String,
         organizationId: String?,
         bulkDeleteCommentsRequest: BulkDeleteCommentsRequest?
     ): ResponseEntity<Unit> {
-        if(bulkDeleteCommentsRequest == null) {
-            throw InvalidArgumentException("Request cannot be null.")
-        }
-
         val user = User.builder()
             .setAuthorization(authorization)
             .setProject(projectId)
             .setOrganization(organizationId)
             .build()
 
-        val resourceDomain = CommentDomain.from(bulkDeleteCommentsRequest.domain) ?: throw InvalidArgumentException("Request has invalid resource domain.")
+        val request = bulkDeleteCommentsRequest.tryRemoveNullability()
+        val resourceDomain = CommentDomain.from(request.data.domain)
+            ?: throw InvalidArgumentException("Request has invalid resource domain.")
 
         bulkDeleteComments.execute(
             user = user,
             data = BulkDeleteCommentRequest(
-                resourceIds = bulkDeleteCommentsRequest.resource.ids,
+                resourceIds = request.data.resource.ids,
                 domain = resourceDomain,
             )
         )
 
-        return ResponseEntity.noContent().build()
+        return responseWithNoContent()
     }
 
-    override fun likeComment(
+    override fun actionComment(
         id: String,
         authorization: String,
         projectId: String,
-        organizationId: String?
+        organizationId: String?,
+        actionCommentRequest: ActionCommentRequest?
     ): ResponseEntity<Unit> {
-        return super.likeComment(id, authorization, projectId, organizationId)
+        val user = User.builder()
+            .setAuthorization(authorization)
+            .setProject(projectId)
+            .setOrganization(organizationId)
+            .build()
+
+        val request = actionCommentRequest.tryRemoveNullability()
+        actionComment.execute(
+            user = user,
+            data = ga.injuk.commentor.application.port.dto.request.ActionCommentRequest(
+                id = id.decodeToLong(),
+                action = when(request.type) {
+                    ActionCommentRequest.Type.LIKE -> CommentInteractionType.LIKE
+                    ActionCommentRequest.Type.DISLIKE -> CommentInteractionType.DISLIKE
+                }
+            )
+        )
+
+        return responseWithNoContent()
     }
 
-    override fun dislikeComment(
+    override fun createSubComment(
         id: String,
         authorization: String,
         projectId: String,
-        organizationId: String?
-    ): ResponseEntity<Unit> {
-        return super.dislikeComment(id, authorization, projectId, organizationId)
+        organizationId: String?,
+        createSubCommentRequest: CreateSubCommentRequest?
+    ): ResponseEntity<CreateSubCommentResponse> {
+        val user = User.builder()
+            .setAuthorization(authorization)
+            .setProject(projectId)
+            .setOrganization(organizationId)
+            .build()
+
+        val data = createSubCommentRequest.tryRemoveNullability()
+            .convert()
+        val result = createComment.execute(user, data)
+
+        return ResponseEntity.ok(
+            CreateSubCommentResponse(result.id)
+        )
     }
+
+    private fun <T> T?.tryRemoveNullability()
+        = this ?: throw UncaughtException("Request data cannot be null")
+
+    private fun String.decodeToLong()
+        = idConverter.decode(this) ?: throw InvalidArgumentException("Cannot decode id")
+
+    private fun <T> responseWithNoContent()
+        = ResponseEntity.noContent().build<T>()
 }
