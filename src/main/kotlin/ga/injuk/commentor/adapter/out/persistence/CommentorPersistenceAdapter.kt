@@ -133,7 +133,6 @@ CreateCommentInteractionPort, GetCommentInteractionPort, UpdateCommentInteractio
                 parts = comment.parts ?: throw InvalidArgumentException("parts cannot be null"),
                 isDeleted = comment.isDeleted ?: throw InvalidArgumentException("isDeleted cannot be null"),
                 hasSubComments = comment.hasSubComments ?: throw InvalidArgumentException("hasSubComments cannot be null"),
-                myInteraction = CommentInteractionType.from(comment.myInteractionType),
                 likeCount = comment.likeCount ?: throw InvalidArgumentException("likeCount cannot be null"),
                 dislikeCount = comment.dislikeCount ?: throw InvalidArgumentException("dislikeCount cannot be null"),
                 created = Comment.Context(

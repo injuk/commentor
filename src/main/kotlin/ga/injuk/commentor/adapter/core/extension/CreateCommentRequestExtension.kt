@@ -14,14 +14,15 @@ internal fun CreateCommentRequest.convert()
         )
     }
 
-internal fun CreateSubCommentRequest.convert()
+internal fun CreateSubCommentRequest.convertWith(parentId: Long)
     = this.run {
         ga.injuk.commentor.application.port.dto.request.CreateCommentRequest(
             domain = this.domain ?: CommentDomain.NONE.value,
             resource = ga.injuk.commentor.application.port.dto.Resource(
                 id = this.resource.id,
             ),
-            parts = this.parts.map { it.convert() }
+            parts = this.parts.map { it.convert() },
+            parentId = parentId,
         )
     }
 

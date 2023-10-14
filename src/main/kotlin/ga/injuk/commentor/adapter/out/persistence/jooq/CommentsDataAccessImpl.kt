@@ -67,7 +67,6 @@ class CommentsDataAccessImpl(
                             )
                     )
                 ).`as`(HAS_SUB_COMMENTS),
-                COMMENT_INTERACTIONS.TYPE,
                 c.LIKE_COUNT,
                 c.DISLIKE_COUNT,
                 c.CREATED_AT,
@@ -76,11 +75,6 @@ class CommentsDataAccessImpl(
                 c.UPDATED_BY_ID
             )
                 .from(c)
-                .leftJoin(COMMENT_INTERACTIONS)
-                .on(
-                    COMMENT_INTERACTIONS.COMMENT_ID.eq(c.ID)
-                        .and(COMMENT_INTERACTIONS.USER_ID.eq(user.id))
-                )
                 .where(c.ID.eq(request.commentId))
                 .apply { if(request.withLock) forUpdate() }
         }.singleOrNull()
@@ -91,7 +85,6 @@ class CommentsDataAccessImpl(
                 parts = convertToComments(it.get(COMMENTS.DATA)),
                 isDeleted = it.get(COMMENTS.IS_DELETED),
                 hasSubComments = it.get(HAS_SUB_COMMENTS) as? Boolean,
-                myInteractionType = it.get(COMMENT_INTERACTIONS.TYPE),
                 likeCount = it.get(COMMENTS.LIKE_COUNT),
                 dislikeCount = it.get(COMMENTS.DISLIKE_COUNT),
                 createdAt = it.get(COMMENTS.CREATED_AT),

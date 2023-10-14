@@ -3,6 +3,7 @@ package ga.injuk.commentor.adapter.`in`.rest
 import ga.injuk.commentor.adapter.core.exception.InvalidArgumentException
 import ga.injuk.commentor.adapter.core.exception.UncaughtException
 import ga.injuk.commentor.adapter.core.extension.convert
+import ga.injuk.commentor.adapter.core.extension.convertWith
 import ga.injuk.commentor.application.port.dto.Resource
 import ga.injuk.commentor.application.port.dto.request.*
 import ga.injuk.commentor.application.port.`in`.*
@@ -24,6 +25,7 @@ class CommentorController(
     private val listSubComments: ListSubCommentsUseCase,
     private val updateComment: UpdateCommentUseCase,
     private val deleteComment: DeleteCommentUseCase,
+    private val createSubComment: CreateSubCommentUseCase,
     private val bulkDeleteComments: BulkDeleteCommentUseCase,
     private val actionComment: ActionCommentUseCase,
     private val idConverter: IdConverter,
@@ -227,9 +229,10 @@ class CommentorController(
             .setOrganization(organizationId)
             .build()
 
+        val parentId = id.decodeToLong()
         val data = createSubCommentRequest.tryRemoveNullability()
-            .convert()
-        val result = createComment.execute(user, data)
+            .convertWith(parentId)
+        val result = createSubComment.execute(user, data)
 
         return ResponseEntity.ok(
             CreateSubCommentResponse(result.id)
