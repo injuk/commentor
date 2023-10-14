@@ -1,5 +1,6 @@
 package ga.injuk.commentor.application.command
 
+import ga.injuk.commentor.adapter.core.exception.BadRequestException
 import ga.injuk.commentor.adapter.core.exception.ResourceNotFoundException
 import ga.injuk.commentor.application.port.dto.request.*
 import ga.injuk.commentor.application.port.`in`.ActionCommentUseCase
@@ -25,8 +26,11 @@ class ActionCommentCommand(
     override fun execute(user: User, data: ActionCommentRequest) {
         val (commentId, requestedAction) = data
 
-        getCommentPort.get(user, GetCommentRequest(commentId, withLock = true))
+        val comment = getCommentPort.get(user, GetCommentRequest(commentId, withLock = true))
             ?: throw ResourceNotFoundException("there is no comment")
+        if(comment.isDeleted) {
+            throw BadRequestException("Cannot action for deleted comment")
+        }
 
         val commentInteraction = getCommentInteractionPort.get(user, GetCommentInteractionRequest(commentId, withLock = true))
         // TODO: 팩토리 + 전략패턴으로 수정하기

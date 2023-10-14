@@ -106,12 +106,14 @@ CreateCommentInteractionPort, GetCommentInteractionPort, UpdateCommentInteractio
     override fun get(user: User, request: GetCommentInteractionRequest): CommentInteraction? {
         val commentInteractionRow = commentInteractionsDataAccess.findOne(user, request)
 
-        return CommentInteraction(
-            id = commentInteractionRow?.id ?: throw InvalidArgumentException("interaction id cannot be null"),
-            commentId = commentInteractionRow.commentId ?: throw InvalidArgumentException("commentId cannot be null"),
-            type = CommentInteractionType.from(commentInteractionRow.type) ?: throw InvalidArgumentException("interaction type cannot be null"),
-            userId = commentInteractionRow.userId ?: throw InvalidArgumentException("userId cannot be null"),
-        )
+        return commentInteractionRow?.let {
+            CommentInteraction(
+                id = it?.id ?: throw InvalidArgumentException("interaction id cannot be null"),
+                commentId = it.commentId ?: throw InvalidArgumentException("commentId cannot be null"),
+                type = CommentInteractionType.from(it.type) ?: throw InvalidArgumentException("interaction type cannot be null"),
+                userId = it.userId ?: throw InvalidArgumentException("userId cannot be null"),
+            )
+        }
     }
 
     override fun update(user: User, request: UpdateCommentInteractionRequest): Int {
