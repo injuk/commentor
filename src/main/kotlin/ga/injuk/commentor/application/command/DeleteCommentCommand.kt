@@ -18,20 +18,22 @@ class DeleteCommentCommand(
 ): DeleteCommentUseCase {
 
     @Transactional
-    override fun execute(user: User, data: DeleteCommentRequest) {
+    override fun execute(user: User, data: DeleteCommentRequest): Int {
         val comment = getCommentPort.get(user, GetCommentRequest(commentId = data.id, withLock = true))
-            ?: throw ResourceNotFoundException("there is no comment")
+            ?: throw ResourceNotFoundException("There is no comment")
 
         if(user.id != comment.created.by.id) {
-            throw BadRequestException("cannot delete other's comment")
+            throw BadRequestException("Cannot delete other's comment")
         }
         if(comment.isDeleted) {
-            throw BadRequestException("comment has already been deleted")
+            throw BadRequestException("Comment has already been deleted")
         }
 
         val affectedRows = deleteCommentPort.delete(user, data)
         if(affectedRows == 0) {
-            throw BadRequestException("there is no comment deleted")
+            throw BadRequestException("There is no comment deleted")
         }
+
+        return affectedRows
     }
 }

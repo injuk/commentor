@@ -34,12 +34,12 @@ create table "my_test_org".comment_interactions
 insert into "my_test_org".comments
     (org_id, project_id, "domain", resource_id, is_deleted, data, created_by_id, updated_by_id)
 values
+    ('migrated_org_id', 'migrated_project_id', 'ARTICLE', 'migrated_resource_id', false, '[]', 'SYSTEM', 'SYSTEM'),
+    ('migrated_org_id', 'migrated_project_id', 'ARTICLE', 'migrated_resource_id', false, '[]', 'SYSTEM', 'SYSTEM'),
     ('migrated_org_id', 'migrated_project_id', 'ARTICLE', 'migrated_resource_id', false, '[]', 'TESTER', 'TESTER'),
     ('migrated_org_id', 'migrated_project_id', 'ARTICLE', 'migrated_resource_id', false, '[]', 'TESTER', 'TESTER'),
     ('migrated_org_id', 'migrated_project_id', 'ARTICLE', 'migrated_resource_id', false, '[]', 'TESTER', 'TESTER'),
-    ('migrated_org_id', 'migrated_project_id', 'ARTICLE', 'migrated_resource_id', false, '[]', 'TESTER', 'TESTER'),
-    ('migrated_org_id', 'migrated_project_id', 'ARTICLE', 'migrated_resource_id', false, '[]', 'TESTER', 'TESTER'),
-    ('migrated_org_id', 'migrated_project_id', 'ARTICLE', 'migrated_resource_id', true, '[]', 'TESTER', 'TESTER'),
+    ('migrated_org_id', 'migrated_project_id', 'ARTICLE', 'migrated_resource_id', true, '[]', 'SYSTEM', 'SYSTEM'),
     ('migrated_org_id', 'migrated_project_id', 'ARTICLE', 'migrated_resource_id', true, '[]', 'TESTER', 'TESTER'),
     ('migrated_org_id', 'migrated_project_id', 'ARTICLE', 'migrated_resource_id', true, '[]', 'TESTER', 'TESTER'),
     ('migrated_org_id', 'migrated_project_id', 'ARTICLE', 'migrated_resource_id', true, '[]', 'TESTER', 'TESTER'),
