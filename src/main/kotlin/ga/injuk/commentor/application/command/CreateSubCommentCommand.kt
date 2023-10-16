@@ -28,7 +28,7 @@ class CreateSubCommentCommand(
         }
 
         val comment = getCommentPort.get(user, GetCommentRequest(commentId = parentId, withLock = true))
-            ?: throw ResourceNotFoundException("there is no parent comment")
+            ?: throw ResourceNotFoundException("There is no parent comment")
         if(comment.isDeleted) {
             throw BadRequestException("Cannot create sub-comment for deleted comment")
         }

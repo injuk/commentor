@@ -53,7 +53,7 @@ class CreateCommentCommandTest : BehaviorSpec() {
                 )
             ))
 
-            When("댓글을 생성할 경우 응답을 디코딩하는 것으로") {
+            When("댓글을 생성할 경우, 응답을 디코딩하는 것으로") {
                 val request = CreateCommentRequest(
                     domain = "ARTICLE",
                     resource = Resource("my-test-resource-id"),
