@@ -1,5 +1,6 @@
 package ga.injuk.commentor.application.command
 
+import ga.injuk.commentor.adapter.core.exception.BadRequestException
 import ga.injuk.commentor.application.port.`in`.CreateCommentUseCase
 import ga.injuk.commentor.application.port.dto.request.CreateCommentRequest
 import ga.injuk.commentor.application.port.dto.response.CreateCommentResponse
@@ -17,6 +18,10 @@ class CreateCommentCommand(
 
     @Transactional
     override fun execute(user: User, data: CreateCommentRequest): CreateCommentResponse {
+        if(data.parts.isEmpty()) {
+            throw BadRequestException("Comment is required")
+        }
+
         val result = createCommentPort.create(
             user = user,
             request = data,

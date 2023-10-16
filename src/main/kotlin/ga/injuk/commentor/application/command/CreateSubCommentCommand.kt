@@ -23,6 +23,10 @@ class CreateSubCommentCommand(
     @Transactional
     override fun execute(user: User, data: CreateCommentRequest): CreateCommentResponse {
         val parentId = data.parentId ?: throw BadRequestException("ParentId is required")
+        if(data.parts.isEmpty()) {
+            throw BadRequestException("Comment is required")
+        }
+
         val comment = getCommentPort.get(user, GetCommentRequest(commentId = parentId, withLock = true))
             ?: throw ResourceNotFoundException("there is no parent comment")
         if(comment.isDeleted) {
