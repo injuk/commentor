@@ -62,6 +62,7 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql")
 
     implementation("org.hashids:hashids:1.0.3")
+    testImplementation("org.flywaydb:flyway-core")
 }
 
 tasks.withType<KotlinCompile> {
