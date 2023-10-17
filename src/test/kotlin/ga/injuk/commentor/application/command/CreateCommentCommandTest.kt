@@ -63,6 +63,7 @@ class CreateCommentCommandTest : BehaviorSpec() {
                 val result = idConverter.decode(response.id)
 
                 Then("Long 형태의 id를 반환받을 수 있다.") {
+
                     result shouldNotBe null
                     result!! shouldBeGreaterThanOrEqual 1L
                 }
