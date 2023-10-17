@@ -85,7 +85,7 @@ values
     ('migrated_org_id', 'migrated_project_id', 'ARTICLE', 'migrated_resource_id', false, '[]', 'SYSTEM2', 'SYSTEM2'),
     ('migrated_org_id', 'migrated_project_id', 'ARTICLE', 'migrated_resource_id', false, '[]', 'SYSTEM3', 'SYSTEM3'),
 
-    ('migrated_org_id', 'migrated_project_id', 'ARTICLE', 'migrated_resource_id', false, '[]', 'SYSTEM1', 'SYSTEM1'),
-    ('migrated_org_id', 'migrated_project_id', 'ARTICLE', 'migrated_resource_id', false, '[]', 'SYSTEM2', 'SYSTEM2'),
-    ('migrated_org_id', 'migrated_project_id', 'ARTICLE', 'migrated_resource_id', false, '[]', 'SYSTEM3', 'SYSTEM3'),
-    ('migrated_org_id', 'migrated_project_id', 'ARTICLE', 'migrated_resource_id', false, '[]', 'SYSTEM1', 'SYSTEM1');
+    ('migrated_org_id', 'migrated_project_id', 'ARTICLE', 'bulk_delete_target_1', false, '[]', 'SYSTEM1', 'SYSTEM1'),
+    ('migrated_org_id', 'migrated_project_id', 'ARTICLE', 'bulk_delete_target_2', false, '[]', 'SYSTEM2', 'SYSTEM2'),
+    ('migrated_org_id', 'migrated_project_id', 'ARTICLE', 'bulk_delete_target_3', false, '[]', 'SYSTEM3', 'SYSTEM3'),
+    ('migrated_org_id', 'migrated_project_id', 'ARTICLE', 'bulk_delete_target_2', false, '[]', 'SYSTEM1', 'SYSTEM1');

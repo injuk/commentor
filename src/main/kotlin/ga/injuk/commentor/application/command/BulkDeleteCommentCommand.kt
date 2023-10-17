@@ -18,19 +18,21 @@ class BulkDeleteCommentCommand(
     }
 
     @Transactional
-    override fun execute(user: User, data: BulkDeleteCommentRequest) {
+    override fun execute(user: User, data: BulkDeleteCommentRequest): Int {
         // TODO: 권한을 활용하도록 수정
         if(user.id != SYSTEM_USER_ID) {
-            throw BadRequestException("only SYSTEM users can invoke this api.")
+            throw BadRequestException("Only SYSTEM users can invoke this api")
         }
 
         if(data.resourceIds.isEmpty()) {
-            throw InvalidArgumentException("resource ids cannot be empty.")
+            throw BadRequestException("Resource ids cannot be empty")
         }
 
         val affectedRows = bulkDeleteCommentPort.delete(data)
         if(affectedRows == 0) {
-            throw BadRequestException("there is no affected comments")
+            throw BadRequestException("There is no comment deleted")
         }
+
+        return affectedRows
     }
 }
