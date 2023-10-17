@@ -154,9 +154,9 @@ class CommentsDataAccessImpl(
                             .run {
                                 if(request.sortConditions.order == ListCommentsRequest.Order.ASC) {
                                     sortBy = criteria.asc()
-                                    lt(request.nextCursor)
+                                    ge(request.nextCursor)
                                 } else {
-                                    gt(request.nextCursor)
+                                    le(request.nextCursor)
                                 }
                             }
                     )
