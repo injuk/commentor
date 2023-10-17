@@ -88,7 +88,7 @@ class DeleteCommentCommandTest : BehaviorSpec() {
             }
 
             When("이미 제거된 댓글에 대해 다시 제거를 시도할 경우") {
-                val alreadyDeletedComment = 6L
+                val alreadyDeletedComment = 4L
                 val request = DeleteCommentRequest(id = alreadyDeletedComment)
 
                 val exception = shouldThrow<BadRequestException> {

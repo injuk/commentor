@@ -41,7 +41,7 @@ class CreateSubCommentCommandTest : BehaviorSpec() {
                 .setProject("my-project-id")
                 .setOrganization("my-organization-id")
                 .build()
-            val parentCommentId = 1L
+            val parentCommentId = 3L
             val commentParts = listOf(CommentPart(
                 type = CommentPartType.PARAGRAPH,
                 attrs = null,
@@ -137,7 +137,7 @@ class CreateSubCommentCommandTest : BehaviorSpec() {
             }
 
             When("삭제된 부모 댓글에 대해 대댓글을 생성 시도할 경우") {
-                val deletedCommentId = 10L
+                val deletedCommentId = 4L
                 val request = CreateCommentRequest(
                     domain = "ARTICLE",
                     resource = Resource("my-test-resource-id"),

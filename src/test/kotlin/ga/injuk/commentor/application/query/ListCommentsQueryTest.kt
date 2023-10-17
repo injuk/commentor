@@ -44,7 +44,7 @@ class ListCommentsQueryTest : BehaviorSpec() {
                 val limit = 11L
                 val (data) = listComments.execute(user, ListCommentsRequest(
                     limit = limit,
-                    domain = CommentDomain.ARTICLE,
+                    domain = CommentDomain.VIDEO,
                     resource = Resource(id = "migrated_resource_id"),
                 ))
 

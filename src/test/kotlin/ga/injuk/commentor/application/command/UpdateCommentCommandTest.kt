@@ -141,7 +141,7 @@ class UpdateCommentCommandTest : BehaviorSpec() {
             }
 
             When("이미 제거된 댓글에 대해 수정 시도할 경우") {
-                val alreadyDeletedComment = 6L
+                val alreadyDeletedComment = 4L
                 val request = UpdateCommentRequest(id = alreadyDeletedComment, parts = commentParts)
 
                 val exception = shouldThrow<BadRequestException> {
