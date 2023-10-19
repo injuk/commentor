@@ -139,30 +139,21 @@ class CommentsDataAccessImpl(
                 .and(c.RESOURCE_ID.eq(request.resource?.id))
                 .and(c.PARENT_ID.isNull)
 
-            var sortBy = c.CREATED_AT.desc()
-            selectStep.apply {
-                if(request.nextCursor == null) {
-                    and(noCondition())
-                } else {
-                    val criteria = when(request.sortConditions.criteria) {
-                        ListCommentsRequest.Criteria.UPDATED_AT -> c.UPDATED_AT
-                        else -> c.CREATED_AT
-                    }
+            val (criteria, order) = request.sortConditions.decideCriteriaAndOrder()
 
+            selectStep.apply {
+                if(request.nextCursor != null) {
                     and(
-                        concat(criteria, lpadByZero())
-                            .run {
-                                if(request.sortConditions.order == ListCommentsRequest.Order.ASC) {
-                                    sortBy = criteria.asc()
-                                    ge(request.nextCursor)
-                                } else {
-                                    le(request.nextCursor)
+                        concat(criteria, lpadByZero()).run {
+                                when(request.sortConditions.order) {
+                                    ListCommentsRequest.Order.ASC -> ge(request.nextCursor)
+                                    ListCommentsRequest.Order.DESC -> le(request.nextCursor)
                                 }
                             }
                     )
                 }
             }
-                .orderBy(sortBy)
+                .orderBy(order)
                 .limit(limit + 1)
         }.toList()
 
@@ -194,6 +185,20 @@ class CommentsDataAccessImpl(
             },
             cursor = nextCursor,
         )
+    }
+
+    private fun ListCommentsRequest.SortConditions.decideCriteriaAndOrder() = this.run {
+        val criteria = when(this.criteria) {
+            ListCommentsRequest.Criteria.CREATED_AT -> c.CREATED_AT
+            ListCommentsRequest.Criteria.UPDATED_AT -> c.UPDATED_AT
+        }
+
+        val order = when(this.order) {
+            ListCommentsRequest.Order.ASC -> listOf(criteria.asc(), c.ID.asc())
+            ListCommentsRequest.Order.DESC -> listOf(criteria.desc(), c.ID.desc())
+        }
+
+        criteria to order
     }
 
     override fun findBy(user: User, request: ListSubCommentsRequest): ListCommentsResponse {
