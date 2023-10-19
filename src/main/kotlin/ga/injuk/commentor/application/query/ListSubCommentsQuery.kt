@@ -26,14 +26,14 @@ class ListSubCommentsQuery(
 
     override fun execute(user: User, data: ListSubCommentsRequest): ListCommentsResponse {
         getCommentPort.get(user, GetCommentRequest(commentId = data.parentId))
-            ?: throw ResourceNotFoundException("there is no comment")
+            ?: throw ResourceNotFoundException("There is no comment")
 
         val (results, nextCursor) = listSubCommentsPort.getList(
             user = user,
             request = ListSubCommentsRequest(
                 parentId = data.parentId,
                 limit = data.limit,
-                sortConditions = data.sortConditions,
+                sortCondition = data.sortCondition,
                 nextCursor = Base64Helper.decode(data.nextCursor),
             ),
         )

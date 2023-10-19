@@ -13,6 +13,7 @@ import ga.injuk.commentor.application.port.dto.request.*
 import ga.injuk.commentor.domain.User
 import ga.injuk.commentor.domain.model.CommentInteractionType.*
 import ga.injuk.commentor.domain.model.CommentPart
+import ga.injuk.commentor.domain.model.SortCondition
 import org.jooq.DSLContext
 import org.jooq.JSON
 import org.jooq.impl.DSL.*
@@ -139,17 +140,17 @@ class CommentsDataAccessImpl(
                 .and(c.RESOURCE_ID.eq(request.resource?.id))
                 .and(c.PARENT_ID.isNull)
 
-            val (criteria, order) = request.sortConditions.decideCriteriaAndOrder()
+            val (criteria, order) = request.sortCondition.decideCriteriaAndOrder()
 
             selectStep.apply {
                 if(request.nextCursor != null) {
                     and(
                         concat(criteria, lpadByZero()).run {
-                                when(request.sortConditions.order) {
-                                    ListCommentsRequest.Order.ASC -> ge(request.nextCursor)
-                                    ListCommentsRequest.Order.DESC -> le(request.nextCursor)
-                                }
+                            when(request.sortCondition.order) {
+                                SortCondition.Order.ASC -> ge(request.nextCursor)
+                                SortCondition.Order.DESC -> le(request.nextCursor)
                             }
+                        }
                     )
                 }
             }
@@ -157,15 +158,7 @@ class CommentsDataAccessImpl(
                 .limit(limit + 1)
         }.toList()
 
-        // TODO: 디게 꼴베기 싫은데 리팩토링 하자
-        var nextCursor: String? = null
-
-        val result = if(response.size > limit) {
-            nextCursor = response.last().get(NEXT_CURSOR) as? String
-            response.dropLast(1)
-        } else {
-            response
-        }
+        val (result, cursorCandidate) = response.getCursorCandidateOrNullBy(limit)
 
         return ListCommentsResponse(
             rows = result.map {
@@ -183,19 +176,25 @@ class CommentsDataAccessImpl(
                     updatedBy = it.get(COMMENTS.UPDATED_BY_ID),
                 )
             },
-            cursor = nextCursor,
+            cursor = cursorCandidate?.get(NEXT_CURSOR) as? String,
         )
     }
 
-    private fun ListCommentsRequest.SortConditions.decideCriteriaAndOrder() = this.run {
+    private fun <T> List<T>.getCursorCandidateOrNullBy(limit: Long) = if(this.size > limit) {
+        this.dropLast(1) to this.last()
+    } else {
+        this to null
+    }
+
+    private fun SortCondition.decideCriteriaAndOrder() = this.run {
         val criteria = when(this.criteria) {
-            ListCommentsRequest.Criteria.CREATED_AT -> c.CREATED_AT
-            ListCommentsRequest.Criteria.UPDATED_AT -> c.UPDATED_AT
+            SortCondition.Criteria.CREATED_AT -> c.CREATED_AT
+            SortCondition.Criteria.UPDATED_AT -> c.UPDATED_AT
         }
 
         val order = when(this.order) {
-            ListCommentsRequest.Order.ASC -> listOf(criteria.asc(), c.ID.asc())
-            ListCommentsRequest.Order.DESC -> listOf(criteria.desc(), c.ID.desc())
+            SortCondition.Order.ASC -> listOf(criteria.asc(), c.ID.asc())
+            SortCondition.Order.DESC -> listOf(criteria.desc(), c.ID.desc())
         }
 
         criteria to order
@@ -243,42 +242,25 @@ class CommentsDataAccessImpl(
                 )
                 .and(c.PARENT_ID.eq(request.parentId))
 
-            var sortBy = c.CREATED_AT.desc()
-            selectStep.apply {
-                if(request.nextCursor == null) {
-                    and(noCondition())
-                } else {
-                    val criteria = when(request.sortConditions.criteria) {
-                        ListSubCommentsRequest.Criteria.UPDATED_AT -> c.UPDATED_AT
-                        else -> c.CREATED_AT
-                    }
+            val (criteria, order) = request.sortCondition.decideCriteriaAndOrder()
 
+            selectStep.apply {
+                if(request.nextCursor != null) {
                     and(
-                        concat(criteria, lpadByZero())
-                            .run {
-                                if(request.sortConditions.order == ListSubCommentsRequest.Order.ASC) {
-                                    sortBy = criteria.asc()
-                                    lt(request.nextCursor)
-                                } else {
-                                    gt(request.nextCursor)
-                                }
+                        concat(criteria, lpadByZero()).run {
+                            when(request.sortCondition.order) {
+                                SortCondition.Order.ASC -> ge(request.nextCursor)
+                                SortCondition.Order.DESC -> le(request.nextCursor)
                             }
+                        }
                     )
                 }
             }
-                .orderBy(sortBy)
+                .orderBy(order)
                 .limit(limit + 1)
         }.toList()
 
-        // TODO: 디게 꼴베기 싫은데 리팩토링 하자
-        var nextCursor: String? = null
-
-        val result = if(response.size > limit) {
-            nextCursor = response.last().get(NEXT_CURSOR) as? String
-            response.dropLast(1)
-        } else {
-            response
-        }
+        val (result, cursorCandidate) = response.getCursorCandidateOrNullBy(limit)
 
         return ListCommentsResponse(
             rows = result.map {
@@ -296,7 +278,7 @@ class CommentsDataAccessImpl(
                     updatedBy = it.get(COMMENTS.UPDATED_BY_ID),
                 )
             },
-            cursor = nextCursor,
+            cursor = cursorCandidate?.get(NEXT_CURSOR) as? String,
         )
     }
 

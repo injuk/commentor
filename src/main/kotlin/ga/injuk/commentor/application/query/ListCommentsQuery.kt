@@ -27,7 +27,7 @@ class ListCommentsQuery(
                 limit = data.limit,
                 resource = data.resource,
                 domain = data.domain,
-                sortConditions = data.sortConditions,
+                sortCondition = data.sortCondition,
 
                 nextCursor = Base64Helper.decode(data.nextCursor),
             ),
