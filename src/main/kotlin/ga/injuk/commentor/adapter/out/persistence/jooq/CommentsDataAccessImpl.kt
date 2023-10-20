@@ -285,6 +285,7 @@ class CommentsDataAccessImpl(
     override fun update(user: User, request: UpdateCommentRequest): AffectedRows
         = dsl.run {
             val response = update(COMMENTS)
+                .set(COMMENTS.UPDATED_BY_ID, user.id)
                 .set(COMMENTS.UPDATED_AT, LocalDateTime.now())
                 .apply {
                     request.parts?.let {
@@ -315,6 +316,7 @@ class CommentsDataAccessImpl(
     override fun delete(user: User, request: DeleteCommentRequest): AffectedRows
         = dsl.run {
             val response = update(COMMENTS)
+                .set(COMMENTS.UPDATED_BY_ID, user.id)
                 .set(COMMENTS.UPDATED_AT, LocalDateTime.now())
                 .set(COMMENTS.IS_DELETED, true)
                 .where(COMMENTS.ID.eq(request.id))

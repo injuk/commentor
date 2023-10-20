@@ -11,6 +11,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.extensions.Extension
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.extensions.spring.SpringExtension
+import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import org.springframework.beans.factory.annotation.Autowired
@@ -26,7 +27,6 @@ class ListSubCommentsQueryTest : BehaviorSpec() {
     @Autowired
     private lateinit var listSubComments: ListSubCommentsUseCase
 
-    //
     init {
         Given("임의의 사용자와 부모 댓글이 준비되었을 때") {
             val user = User.builder()
@@ -42,12 +42,24 @@ class ListSubCommentsQueryTest : BehaviorSpec() {
                     limit = limit,
                     parentId = parentId,
                 ))
+                val (results, nextCursor) = data
 
                 Then("유효한 검색 결과가 반환된다.") {
-                    val (results, nextCursor) = data
 
                     results.size shouldBe limit
                     nextCursor shouldNotBe null
+                }
+
+                And("그러나 조회 결과 중 이미 삭제된 댓글의 경우") {
+                    val deletedComments = results.filter { it.isDeleted }
+                    val notDeletedComments = results.filter { !it.isDeleted }
+
+                    Then("목록에는 표시되지만 댓글 내용은 보이지 않아야 한다.") {
+
+                        deletedComments.size shouldBeGreaterThan 0
+                        deletedComments.all { it.parts.isEmpty() } shouldBe true
+                        notDeletedComments.all { it.parts.isNotEmpty() } shouldBe true
+                    }
                 }
             }
 
