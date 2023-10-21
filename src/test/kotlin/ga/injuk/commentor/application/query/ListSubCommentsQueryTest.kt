@@ -5,6 +5,7 @@ import ga.injuk.commentor.application.port.dto.IdEncodedComment
 import ga.injuk.commentor.application.port.dto.request.ListSubCommentsRequest
 import ga.injuk.commentor.application.port.`in`.ListSubCommentsUseCase
 import ga.injuk.commentor.common.ErrorDetail
+import ga.injuk.commentor.common.IdConverter
 import ga.injuk.commentor.domain.User
 import ga.injuk.commentor.domain.model.SortCondition
 import io.kotest.assertions.throwables.shouldThrow
@@ -26,6 +27,9 @@ class ListSubCommentsQueryTest : BehaviorSpec() {
 
     @Autowired
     private lateinit var listSubComments: ListSubCommentsUseCase
+
+    @Autowired
+    private lateinit var idConverter: IdConverter
 
     init {
         Given("임의의 사용자와 부모 댓글이 준비되었을 때") {
@@ -59,6 +63,30 @@ class ListSubCommentsQueryTest : BehaviorSpec() {
                         deletedComments.size shouldBeGreaterThan 0
                         deletedComments.all { it.parts.isEmpty() } shouldBe true
                         notDeletedComments.all { it.parts.isNotEmpty() } shouldBe true
+                    }
+                }
+
+                And("조회 결과 중 내가 좋아요 한 댓글의 경우") {
+                    val likedComment = results.filter { it.myInteraction != null }
+
+                    Then("세 건이 존재한다.") {
+
+                        likedComment.size shouldBe 3
+                    }
+                }
+
+                And("조회 결과 중 자식이 있는 댓글의 경우") {
+                    val parentComments = results.filter { it.hasSubComments }
+
+                    Then("각 댓글의 자식 댓글 수는 0이 아니어야 한다") {
+
+                        parentComments.all {
+                            val subCommentsPagination = listSubComments.execute(user, ListSubCommentsRequest(
+                                parentId = idConverter.decode(it.id)!!
+                            ))
+
+                            subCommentsPagination.data.results.isNotEmpty()
+                        } shouldBe true
                     }
                 }
             }
