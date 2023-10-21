@@ -3,7 +3,10 @@ package ga.injuk.commentor.application.query
 import ga.injuk.commentor.application.port.dto.IdEncodedComment
 import ga.injuk.commentor.application.port.dto.Resource
 import ga.injuk.commentor.application.port.dto.request.ListCommentsRequest
+import ga.injuk.commentor.application.port.dto.request.ListSubCommentsRequest
 import ga.injuk.commentor.application.port.`in`.ListCommentsUseCase
+import ga.injuk.commentor.application.port.`in`.ListSubCommentsUseCase
+import ga.injuk.commentor.common.IdConverter
 import ga.injuk.commentor.domain.User
 import ga.injuk.commentor.domain.model.CommentDomain
 import ga.injuk.commentor.domain.model.SortCondition
@@ -13,7 +16,6 @@ import io.kotest.extensions.spring.SpringExtension
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.ints.shouldBeLessThanOrEqual
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
@@ -25,6 +27,12 @@ class ListCommentsQueryTest : BehaviorSpec() {
 
     @Autowired
     private lateinit var listComments: ListCommentsUseCase
+
+    @Autowired
+    private lateinit var listSubComments: ListSubCommentsUseCase
+
+    @Autowired
+    private lateinit var idConverter: IdConverter
 
     init {
         Given("임의의 사용자가 준비되었을 때") {
@@ -59,7 +67,7 @@ class ListCommentsQueryTest : BehaviorSpec() {
                     nextCursor shouldBe null
                 }
 
-                And("그러나 조회 결과 중 이미 삭제된 댓글의 경우") {
+                And("조회 결과 중 이미 삭제된 댓글의 경우") {
                     val deletedComments = results.filter { it.isDeleted }
                     val notDeletedComments = results.filter { !it.isDeleted }
 
@@ -68,6 +76,29 @@ class ListCommentsQueryTest : BehaviorSpec() {
                         deletedComments.size shouldBeGreaterThan 0
                         deletedComments.all { it.parts.isEmpty() } shouldBe true
                         notDeletedComments.all { it.parts.isNotEmpty() } shouldBe true
+                    }
+                }
+
+                And("조회 결과 중 내가 좋아요 한 댓글의 경우") {
+                    val likedComment = results.filter { it.myInteraction != null }
+
+                    Then("세 건이 존재한다.") {
+
+                        likedComment.size shouldBe 3
+                    }
+                }
+
+                And("조회 결과 중 자식이 있는 댓글의 경우") {
+                    val parentComments = results.filter { it.hasSubComments }
+
+                    Then("각 댓글의 자식 댓글 수는 0이 아니어야 한다") {
+
+                        parentComments.all {
+                            val subCommentsPagination = listSubComments.execute(user, ListSubCommentsRequest(
+                                parentId = idConverter.decode(it.id)!!
+                            ))
+                            subCommentsPagination.data.results.isNotEmpty()
+                        } shouldBe true
                     }
                 }
             }

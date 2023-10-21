@@ -31,6 +31,15 @@ create table "my_test_org".comment_interactions
     constraint comment_interactions_uq_1 unique (comment_id, user_id)
 );
 
+insert into "my_test_org".comment_interactions
+    (comment_id, type, user_id)
+values
+    (20, 'LIKE', 'SYSTEM'),
+    (20, 'LIKE', 'TESTER'),
+    (21, 'LIKE', 'SYSTEM'),
+    (21, 'LIKE', 'TESTER'),
+    (22, 'LIKE', 'SYSTEM');
+
 insert into "my_test_org".comments
     (org_id, project_id, "domain", resource_id, is_deleted, data, parent_id, created_by_id, updated_by_id)
 values
@@ -44,7 +53,7 @@ values
     ('migrated_org_id', 'migrated_project_id', 'ARTICLE', 'migrated_resource_id', true, '[]', NULL, 'TESTER', 'TESTER'),
     ('migrated_org_id', 'migrated_project_id', 'ARTICLE', 'migrated_resource_id', true, '[]', NULL, 'TESTER', 'TESTER'),
     ('migrated_org_id', 'migrated_project_id', 'ARTICLE', 'migrated_resource_id', true, '[]', NULL, 'TESTER', 'TESTER'),
-    ('migrated_org_id', 'migrated_project_id', 'ARTICLE', 'migrated_resource_id', true, '[]', NULL, 'TESTER', 'TESTER'),
+    ('migrated_org_id', 'migrated_project_id', 'ARTICLE', 'migrated_resource_id', true, '[]', NULL, 'TESTER', 'TESTER'), -- 10
     ('migrated_org_id', 'migrated_project_id', 'ARTICLE', 'bulk_delete_target_1', false, '[]', NULL, 'SYSTEM1', 'SYSTEM1'),
     ('migrated_org_id', 'migrated_project_id', 'ARTICLE', 'bulk_delete_target_2', false, '[]', NULL, 'SYSTEM2', 'SYSTEM2'),
     ('migrated_org_id', 'migrated_project_id', 'ARTICLE', 'bulk_delete_target_3', false, '[]', NULL, 'SYSTEM3', 'SYSTEM3'),
@@ -55,11 +64,11 @@ values
     ('list_test_org', 'list_test_proj', 'VIDEO', 'list_test_res', true, '[{"type":"PARAGRAPH","attrs":{"level":1},"content":[{"type":"TEXT","text":"aaa","marks":[{"type":null,"attrs":{"type":null,"color":"blue"}}],"attrs":{"id":null,"text":null}}]}]', NULL, 'SYSTEM3', 'SYSTEM3'),
     ('list_test_org', 'list_test_proj', 'VIDEO', 'list_test_res', true, '[{"type":"PARAGRAPH","attrs":{"level":1},"content":[{"type":"TEXT","text":"aaa","marks":[{"type":null,"attrs":{"type":null,"color":"blue"}}],"attrs":{"id":null,"text":null}}]}]', NULL, 'SYSTEM1', 'SYSTEM1'),
     ('list_test_org', 'list_test_proj', 'VIDEO', 'list_test_res', true, '[{"type":"PARAGRAPH","attrs":{"level":1},"content":[{"type":"TEXT","text":"aaa","marks":[{"type":null,"attrs":{"type":null,"color":"blue"}}],"attrs":{"id":null,"text":null}}]}]', NULL, 'SYSTEM2', 'SYSTEM2'),
-    ('list_test_org', 'list_test_proj', 'VIDEO', 'list_test_res', false, '[]', 15, 'SYSTEM3', 'SYSTEM3'),
-    ('list_test_org', 'list_test_proj', 'VIDEO', 'list_test_res', false, '[]', 15, 'SYSTEM1', 'SYSTEM1'),
-    ('list_test_org', 'list_test_proj', 'VIDEO', 'list_test_res', false, '[]', 15, 'SYSTEM2', 'SYSTEM2'),
-    ('list_test_org', 'list_test_proj', 'VIDEO', 'list_test_res', false, '[]', 15, 'SYSTEM3', 'SYSTEM3'),
-    ('list_test_org', 'list_test_proj', 'VIDEO', 'list_test_res', false, '[]', 15, 'SYSTEM1', 'SYSTEM1'),
+    ('list_test_org', 'list_test_proj', 'VIDEO', 'list_test_res', false, '[{"type":"PARAGRAPH","attrs":{"level":1},"content":[{"type":"TEXT","text":"aaa","marks":[{"type":null,"attrs":{"type":null,"color":"blue"}}],"attrs":{"id":null,"text":null}}]}]', NULL, 'SYSTEM3', 'SYSTEM3'), -- 20
+    ('list_test_org', 'list_test_proj', 'VIDEO', 'list_test_res', false, '[{"type":"PARAGRAPH","attrs":{"level":1},"content":[{"type":"TEXT","text":"aaa","marks":[{"type":null,"attrs":{"type":null,"color":"blue"}}],"attrs":{"id":null,"text":null}}]}]', NULL, 'SYSTEM1', 'SYSTEM1'),
+    ('list_test_org', 'list_test_proj', 'VIDEO', 'list_test_res', false, '[{"type":"PARAGRAPH","attrs":{"level":1},"content":[{"type":"TEXT","text":"aaa","marks":[{"type":null,"attrs":{"type":null,"color":"blue"}}],"attrs":{"id":null,"text":null}}]}]', NULL, 'SYSTEM2', 'SYSTEM2'),
+    ('list_test_org', 'list_test_proj', 'VIDEO', 'list_test_res', false, '[{"type":"PARAGRAPH","attrs":{"level":1},"content":[{"type":"TEXT","text":"aaa","marks":[{"type":null,"attrs":{"type":null,"color":"blue"}}],"attrs":{"id":null,"text":null}}]}]', NULL, 'SYSTEM3', 'SYSTEM3'),
+    ('list_test_org', 'list_test_proj', 'VIDEO', 'list_test_res', false, '[{"type":"PARAGRAPH","attrs":{"level":1},"content":[{"type":"TEXT","text":"aaa","marks":[{"type":null,"attrs":{"type":null,"color":"blue"}}],"attrs":{"id":null,"text":null}}]}]', NULL, 'SYSTEM1', 'SYSTEM1'),
     ('list_test_org', 'list_test_proj', 'VIDEO', 'list_test_res', false, '[]', 15, 'SYSTEM2', 'SYSTEM2'),
     ('list_test_org', 'list_test_proj', 'VIDEO', 'list_test_res', false, '[]', 15, 'SYSTEM3', 'SYSTEM3'),
     ('list_test_org', 'list_test_proj', 'VIDEO', 'list_test_res', false, '[]', 15, 'SYSTEM1', 'SYSTEM1'),
