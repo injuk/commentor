@@ -27,7 +27,7 @@ class ActionCommentCommand(
         val (commentId, requestedAction) = data
 
         val comment = getCommentPort.get(user, GetCommentRequest(commentId, withLock = true))
-            ?: throw ResourceNotFoundException("there is no comment")
+            ?: throw ResourceNotFoundException("There is no comment")
         if(comment.isDeleted) {
             throw BadRequestException("Cannot action for deleted comment")
         }

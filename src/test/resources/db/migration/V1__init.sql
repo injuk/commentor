@@ -153,6 +153,7 @@ values
     ('list_sub_test_org', 'list_sub_test_proj', 'VIDEO', 'list_sub_test_res', false, '[{"type":"PARAGRAPH","attrs":{"level":1},"content":[{"type":"TEXT","text":"aaa","marks":[{"type":null,"attrs":{"type":null,"color":"blue"}}],"attrs":{"id":null,"text":null}}]}]', 50, 'SYSTEM2', 'SYSTEM2'),
     ('list_sub_test_org', 'list_sub_test_proj', 'VIDEO', 'list_sub_test_res', false, '[{"type":"PARAGRAPH","attrs":{"level":1},"content":[{"type":"TEXT","text":"aaa","marks":[{"type":null,"attrs":{"type":null,"color":"blue"}}],"attrs":{"id":null,"text":null}}]}]', 50, 'SYSTEM3', 'SYSTEM3'),
     ('list_sub_test_org', 'list_sub_test_proj', 'VIDEO', 'list_sub_test_res', false, '[{"type":"PARAGRAPH","attrs":{"level":1},"content":[{"type":"TEXT","text":"aaa","marks":[{"type":null,"attrs":{"type":null,"color":"blue"}}],"attrs":{"id":null,"text":null}}]}]', 50, 'SYSTEM1', 'SYSTEM1'),
+
     ('list_sub_test_org', 'list_sub_test_proj', 'VIDEO', 'list_sub_test_res', true, '[{"type":"PARAGRAPH","attrs":{"level":1},"content":[{"type":"TEXT","text":"aaa","marks":[{"type":null,"attrs":{"type":null,"color":"blue"}}],"attrs":{"id":null,"text":null}}]}]', 50, 'SYSTEM2', 'SYSTEM2'),
     ('list_sub_test_org', 'list_sub_test_proj', 'VIDEO', 'list_sub_test_res', true, '[{"type":"PARAGRAPH","attrs":{"level":1},"content":[{"type":"TEXT","text":"aaa","marks":[{"type":null,"attrs":{"type":null,"color":"blue"}}],"attrs":{"id":null,"text":null}}]}]', 50, 'SYSTEM3', 'SYSTEM3'),
     ('list_sub_test_org', 'list_sub_test_proj', 'VIDEO', 'list_sub_test_res', true, '[{"type":"PARAGRAPH","attrs":{"level":1},"content":[{"type":"TEXT","text":"aaa","marks":[{"type":null,"attrs":{"type":null,"color":"blue"}}],"attrs":{"id":null,"text":null}}]}]', 50, 'SYSTEM1', 'SYSTEM1'),
@@ -171,4 +172,13 @@ values
     (106, 'LIKE', 'SYSTEM'),
     (107, 'LIKE', 'TESTER'),
     (108, 'LIKE', 'SYSTEM'),
-    (109, 'LIKE', 'TESTER');;
+    (109, 'LIKE', 'TESTER');
+
+insert into "my_test_org".comments
+(org_id, project_id, "domain", resource_id, is_deleted, data, parent_id, created_by_id, updated_by_id)
+values
+    ('action_test_org', 'action_test_proj', 'VIDEO', 'action_test_res', false, '[{"type":"PARAGRAPH","attrs":{"level":1},"content":[{"type":"TEXT","text":"aaa","marks":[{"type":null,"attrs":{"type":null,"color":"blue"}}],"attrs":{"id":null,"text":null}}]}]', null, 'SYSTEM1', 'SYSTEM1'), -- 115
+    ('action_test_org', 'action_test_proj', 'VIDEO', 'action_test_res', false, '[{"type":"PARAGRAPH","attrs":{"level":1},"content":[{"type":"TEXT","text":"aaa","marks":[{"type":null,"attrs":{"type":null,"color":"blue"}}],"attrs":{"id":null,"text":null}}]}]', 50, 'SYSTEM1', 'SYSTEM1'),
+    ('action_test_org', 'action_test_proj', 'VIDEO', 'action_test_res', false, '[{"type":"PARAGRAPH","attrs":{"level":1},"content":[{"type":"TEXT","text":"aaa","marks":[{"type":null,"attrs":{"type":null,"color":"blue"}}],"attrs":{"id":null,"text":null}}]}]', 51, 'SYSTEM1', 'SYSTEM1'),
+    ('action_test_org', 'action_test_proj', 'VIDEO', 'action_test_res', false, '[{"type":"PARAGRAPH","attrs":{"level":1},"content":[{"type":"TEXT","text":"aaa","marks":[{"type":null,"attrs":{"type":null,"color":"blue"}}],"attrs":{"id":null,"text":null}}]}]', 52, 'SYSTEM1', 'SYSTEM1'),
+    ('action_test_org', 'action_test_proj', 'VIDEO', 'action_test_res', false, '[{"type":"PARAGRAPH","attrs":{"level":1},"content":[{"type":"TEXT","text":"aaa","marks":[{"type":null,"attrs":{"type":null,"color":"blue"}}],"attrs":{"id":null,"text":null}}]}]', 53, 'SYSTEM1', 'SYSTEM1');
