@@ -1,4 +1,4 @@
-package ga.injuk.commentor.adapter.out.persistence.jooq
+package ga.injuk.commentor.adapter.out.persistence.dataAccess.jooq
 
 import com.mzc.cloudplex.download.persistence.jooq.tables.references.COMMENTS
 import com.mzc.cloudplex.download.persistence.jooq.tables.references.COMMENT_INTERACTIONS
@@ -7,11 +7,12 @@ import ga.injuk.commentor.adapter.out.dto.AffectedRows
 import ga.injuk.commentor.adapter.out.dto.CreateCommentResponse
 import ga.injuk.commentor.adapter.out.dto.GetCommentResponse
 import ga.injuk.commentor.adapter.out.dto.ListCommentsResponse
-import ga.injuk.commentor.adapter.out.persistence.CommentsDataAccess
+import ga.injuk.commentor.adapter.out.persistence.dataAccess.CommentsDataAccess
 import ga.injuk.commentor.application.JsonObjectMapper
 import ga.injuk.commentor.application.port.dto.request.*
 import ga.injuk.commentor.domain.User
-import ga.injuk.commentor.domain.model.CommentInteractionType.*
+import ga.injuk.commentor.domain.model.CommentInteractionType.DISLIKE
+import ga.injuk.commentor.domain.model.CommentInteractionType.LIKE
 import ga.injuk.commentor.domain.model.CommentPart
 import ga.injuk.commentor.domain.model.SortCondition
 import org.jooq.DSLContext
@@ -23,7 +24,7 @@ import java.time.LocalDateTime
 @Repository
 class CommentsDataAccessImpl(
     private val dsl: DSLContext,
-): CommentsDataAccess {
+) : CommentsDataAccess {
     companion object {
         private const val HAS_SUB_COMMENTS = "hasSubComments"
         private const val NEXT_CURSOR = "nextCursor"
@@ -77,7 +78,7 @@ class CommentsDataAccessImpl(
             )
                 .from(c)
                 .where(c.ID.eq(request.commentId))
-                .apply { if(request.withLock) forUpdate() }
+                .apply { if (request.withLock) forUpdate() }
         }.singleOrNull()
 
         return response?.let {
@@ -143,10 +144,10 @@ class CommentsDataAccessImpl(
             val (criteria, order) = request.sortCondition.decideCriteriaAndOrder()
 
             selectStep.apply {
-                if(request.nextCursor != null) {
+                if (request.nextCursor != null) {
                     and(
                         concat(criteria, lpadByZero()).run {
-                            when(request.sortCondition.order) {
+                            when (request.sortCondition.order) {
                                 SortCondition.Order.ASC -> ge(request.nextCursor)
                                 SortCondition.Order.DESC -> le(request.nextCursor)
                             }
@@ -180,19 +181,19 @@ class CommentsDataAccessImpl(
         )
     }
 
-    private fun <T> List<T>.getCursorCandidateOrNullBy(limit: Long) = if(this.size > limit) {
+    private fun <T> List<T>.getCursorCandidateOrNullBy(limit: Long) = if (this.size > limit) {
         this.dropLast(1) to this.last()
     } else {
         this to null
     }
 
     private fun SortCondition.decideCriteriaAndOrder() = this.run {
-        val criteria = when(this.criteria) {
+        val criteria = when (this.criteria) {
             SortCondition.Criteria.CREATED_AT -> c.CREATED_AT
             SortCondition.Criteria.UPDATED_AT -> c.UPDATED_AT
         }
 
-        val order = when(this.order) {
+        val order = when (this.order) {
             SortCondition.Order.ASC -> listOf(criteria.asc(), c.ID.asc())
             SortCondition.Order.DESC -> listOf(criteria.desc(), c.ID.desc())
         }
@@ -245,10 +246,10 @@ class CommentsDataAccessImpl(
             val (criteria, order) = request.sortCondition.decideCriteriaAndOrder()
 
             selectStep.apply {
-                if(request.nextCursor != null) {
+                if (request.nextCursor != null) {
                     and(
                         concat(criteria, lpadByZero()).run {
-                            when(request.sortCondition.order) {
+                            when (request.sortCondition.order) {
                                 SortCondition.Order.ASC -> ge(request.nextCursor)
                                 SortCondition.Order.DESC -> le(request.nextCursor)
                             }
@@ -282,58 +283,56 @@ class CommentsDataAccessImpl(
         )
     }
 
-    override fun update(user: User, request: UpdateCommentRequest): AffectedRows
-        = dsl.run {
-            val response = update(COMMENTS)
-                .set(COMMENTS.UPDATED_BY_ID, user.id)
-                .set(COMMENTS.UPDATED_AT, LocalDateTime.now())
-                .apply {
-                    request.parts?.let {
-                        set(COMMENTS.DATA, it.convertToJooqJson())
-                    }
-                    request.interactions?.let { interaction ->
-                        interaction.forEach {
-                            val (value, isCancelAction, type) = it
-                            when(type) {
-                                LIKE -> set(
-                                    COMMENTS.LIKE_COUNT,
-                                    if(isCancelAction) COMMENTS.LIKE_COUNT.minus(value) else COMMENTS.LIKE_COUNT.plus(value)
-                                )
-                                DISLIKE -> set(
-                                    COMMENTS.DISLIKE_COUNT,
-                                    if(isCancelAction) COMMENTS.DISLIKE_COUNT.minus(value) else COMMENTS.DISLIKE_COUNT.plus(value)
-                                )
-                            }
+    override fun update(user: User, request: UpdateCommentRequest): AffectedRows = dsl.run {
+        val response = update(COMMENTS)
+            .set(COMMENTS.UPDATED_BY_ID, user.id)
+            .set(COMMENTS.UPDATED_AT, LocalDateTime.now())
+            .apply {
+                request.parts?.let {
+                    set(COMMENTS.DATA, it.convertToJooqJson())
+                }
+                request.interactions?.let { interaction ->
+                    interaction.forEach {
+                        val (value, isCancelAction, type) = it
+                        when (type) {
+                            LIKE -> set(
+                                COMMENTS.LIKE_COUNT,
+                                if (isCancelAction) COMMENTS.LIKE_COUNT.minus(value) else COMMENTS.LIKE_COUNT.plus(value)
+                            )
+                            DISLIKE -> set(
+                                COMMENTS.DISLIKE_COUNT,
+                                if (isCancelAction) COMMENTS.DISLIKE_COUNT.minus(value) else COMMENTS.DISLIKE_COUNT.plus(
+                                    value)
+                            )
                         }
                     }
                 }
-                .where(COMMENTS.ID.eq(request.id))
-                .execute()
+            }
+            .where(COMMENTS.ID.eq(request.id))
+            .execute()
 
-            return AffectedRows(response)
-        }
+        return AffectedRows(response)
+    }
 
-    override fun delete(user: User, request: DeleteCommentRequest): AffectedRows
-        = dsl.run {
-            val response = update(COMMENTS)
-                .set(COMMENTS.UPDATED_BY_ID, user.id)
-                .set(COMMENTS.UPDATED_AT, LocalDateTime.now())
-                .set(COMMENTS.IS_DELETED, true)
-                .where(COMMENTS.ID.eq(request.id))
-                .execute()
+    override fun delete(user: User, request: DeleteCommentRequest): AffectedRows = dsl.run {
+        val response = update(COMMENTS)
+            .set(COMMENTS.UPDATED_BY_ID, user.id)
+            .set(COMMENTS.UPDATED_AT, LocalDateTime.now())
+            .set(COMMENTS.IS_DELETED, true)
+            .where(COMMENTS.ID.eq(request.id))
+            .execute()
 
-            return AffectedRows(response)
-        }
+        return AffectedRows(response)
+    }
 
-    override fun deleteBy(request: BulkDeleteCommentRequest): AffectedRows
-        = dsl.run {
-            val response = deleteFrom(COMMENTS)
-                .where(COMMENTS.RESOURCE_ID.`in`(request.resourceIds))
-                .and(COMMENTS.DOMAIN.eq(request.domain.value))
-                .execute()
+    override fun deleteBy(request: BulkDeleteCommentRequest): AffectedRows = dsl.run {
+        val response = deleteFrom(COMMENTS)
+            .where(COMMENTS.RESOURCE_ID.`in`(request.resourceIds))
+            .and(COMMENTS.DOMAIN.eq(request.domain.value))
+            .execute()
 
-            return AffectedRows(response)
-        }
+        return AffectedRows(response)
+    }
 
     private fun convertToComments(jooqJson: JSON?): List<CommentPart>? = jooqJson?.let { json ->
         val mapper = JsonObjectMapper.instance()

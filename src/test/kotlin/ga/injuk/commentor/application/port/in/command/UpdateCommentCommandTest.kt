@@ -4,7 +4,7 @@ import com.ninjasquad.springmockk.SpykBean
 import ga.injuk.commentor.adapter.core.exception.BadRequestException
 import ga.injuk.commentor.adapter.core.exception.ResourceNotFoundException
 import ga.injuk.commentor.adapter.out.dto.AffectedRows
-import ga.injuk.commentor.adapter.out.persistence.CommentsDataAccess
+import ga.injuk.commentor.adapter.out.persistence.dataAccess.CommentsDataAccess
 import ga.injuk.commentor.application.port.dto.request.UpdateCommentRequest
 import ga.injuk.commentor.application.port.`in`.UpdateCommentUseCase
 import ga.injuk.commentor.common.ErrorDetail
