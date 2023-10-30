@@ -3,7 +3,7 @@ package ga.injuk.commentor.application
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 
-object JsonObjectMapper {
+internal object JsonObjectMapper {
     private val mapper: ObjectMapper = ObjectMapper().registerModules(
         KotlinModule.Builder()
             .build()
