@@ -190,26 +190,69 @@ class ActionCommentCommandTest : BehaviorSpec() {
         }
 
         Given("임의의 사용자와, 해당 사용자가 이미 상호 작용한 댓글이 준비되었을 때") {
+            val user = User.builder()
+                .setAuthorization(authorization)
+                .setProject("action_test_proj")
+                .setOrganization("action_test_org")
+                .build()
+            val targetCommentId = 116L
 
             When("사용자가 댓글에 대해 동일한 액션을 시도한 경우") {
+                actionComment.execute(user, ActionCommentRequest(
+                    id = targetCommentId,
+                    action = CommentInteractionType.LIKE,
+                ))
+                actionComment.execute(user, ActionCommentRequest(
+                    id = targetCommentId,
+                    action = CommentInteractionType.LIKE,
+                ))
 
                 Then("액션에 대한 취소로 취급하여 interaction을 제거한다.") {
+                    val interaction = getInteractionPort.get(user, GetCommentInteractionRequest(
+                        commentId = targetCommentId,
+                    ))
 
+                    interaction shouldBe null
                 }
 
                 And("액션에 대한 취소는 해당 액션에 대응되는 댓글의 count에도 영향을 준다.") {
+                    val targetComment = getCommentPort.get(user, GetCommentRequest(
+                        commentId = targetCommentId,
+                    ))
 
+                    targetComment shouldNotBe null
+                    targetComment!!.likeCount shouldBe 0
+                    targetComment.dislikeCount shouldBe 0
                 }
             }
 
             When("사용자가 댓글에 대해 반대의 액션을 시도한 경우") {
+                actionComment.execute(user, ActionCommentRequest(
+                    id = targetCommentId,
+                    action = CommentInteractionType.LIKE,
+                ))
+                actionComment.execute(user, ActionCommentRequest(
+                    id = targetCommentId,
+                    action = CommentInteractionType.DISLIKE,
+                ))
 
                 Then("액션에 대한 변경으로 취급하여 interaction을 수정한다.") {
+                    val interaction = getInteractionPort.get(user, GetCommentInteractionRequest(
+                        commentId = targetCommentId,
+                    ))
 
+                    interaction shouldNotBe null
+                    interaction!!.type shouldBe CommentInteractionType.DISLIKE
                 }
 
                 And("액션에 대한 수정은 해당 액션에 대응되는 댓글의 count에도 영향을 준다.") {
+                    val targetComment = getCommentPort.get(user, GetCommentRequest(
+                        commentId = targetCommentId,
+                    ))
 
+                    targetComment shouldNotBe null
+                    targetComment!!.likeCount shouldBe 0
+                    targetComment.dislikeCount shouldBe 1
                 }
             }
         }
