@@ -1,4 +1,4 @@
-package ga.injuk.commentor.application.command
+package ga.injuk.commentor.application.port.`in`.command
 
 import ga.injuk.commentor.adapter.core.exception.BadRequestException
 import ga.injuk.commentor.adapter.core.exception.ResourceNotFoundException
@@ -18,26 +18,26 @@ class UpdateCommentCommand(
     private val idConverter: IdConverter,
     private val getCommentPort: GetCommentPort,
     private val updateCommentPort: UpdateCommentPort,
-): UpdateCommentUseCase {
+) : UpdateCommentUseCase {
 
     @Transactional
     override fun execute(user: User, data: UpdateCommentRequest): UpdateCommentResponse {
-        if(data.parts.isNullOrEmpty()) {
+        if (data.parts.isNullOrEmpty()) {
             throw BadRequestException("Comment is required")
         }
 
         val comment = getCommentPort.get(user, GetCommentRequest(commentId = data.id, withLock = true))
             ?: throw ResourceNotFoundException("There is no comment")
 
-        if(user.id != comment.created.by.id) {
+        if (user.id != comment.created.by.id) {
             throw BadRequestException("Cannot update other's comment")
         }
-        if(comment.isDeleted) {
+        if (comment.isDeleted) {
             throw BadRequestException("Comment has already been deleted")
         }
 
         val affectedRows = updateCommentPort.update(user, data)
-        if(affectedRows == 0) {
+        if (affectedRows == 0) {
             throw BadRequestException("There is no comment updated")
         }
 
