@@ -1,29 +1,32 @@
-package ga.injuk.commentor.application.query
+package ga.injuk.commentor.application.port.`in`.query
 
-import ga.injuk.commentor.adapter.core.exception.ResourceNotFoundException
 import ga.injuk.commentor.application.port.dto.IdEncodedComment
+import ga.injuk.commentor.application.port.dto.Resource
+import ga.injuk.commentor.application.port.dto.request.ListCommentsRequest
 import ga.injuk.commentor.application.port.dto.request.ListSubCommentsRequest
+import ga.injuk.commentor.application.port.`in`.ListCommentsUseCase
 import ga.injuk.commentor.application.port.`in`.ListSubCommentsUseCase
-import ga.injuk.commentor.common.ErrorDetail
 import ga.injuk.commentor.common.IdConverter
 import ga.injuk.commentor.domain.User
+import ga.injuk.commentor.domain.model.CommentDomain
 import ga.injuk.commentor.domain.model.SortCondition
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.extensions.Extension
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.extensions.spring.SpringExtension
 import io.kotest.matchers.ints.shouldBeGreaterThan
+import io.kotest.matchers.ints.shouldBeLessThanOrEqual
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
 
 @SpringBootTest
 @ActiveProfiles("test")
-class ListSubCommentsQueryTest : BehaviorSpec() {
-
+class ListCommentsQueryTest : BehaviorSpec() {
     override fun extensions(): List<Extension> = listOf(SpringExtension)
+
+    @Autowired
+    private lateinit var listComments: ListCommentsUseCase
 
     @Autowired
     private lateinit var listSubComments: ListSubCommentsUseCase
@@ -32,29 +35,39 @@ class ListSubCommentsQueryTest : BehaviorSpec() {
     private lateinit var idConverter: IdConverter
 
     init {
-        Given("임의의 사용자와 부모 댓글이 준비되었을 때") {
+        Given("임의의 사용자가 준비되었을 때") {
             val user = User.builder()
                 .setAuthorization("my-authorization")
-                .setProject("list_sub_test_proj")
-                .setOrganization("list_sub_test_org")
+                .setProject("list_test_proj")
+                .setOrganization("list_test_org")
                 .build()
-            val parentId = 50L
+
+            When("아무런 검색 조건 없이 검색을 시도할 경우") {
+                val (data) = listComments.execute(user, ListCommentsRequest())
+
+                Then("빈 목록과 null 커서가 반환된다.") {
+
+                    data.results shouldBe emptyList()
+                    data.nextCursor shouldBe null
+                }
+            }
 
             When("유효한 검색 조건과 함께 검색을 시도할 경우") {
                 val limit = 11L
-                val (data) = listSubComments.execute(user, ListSubCommentsRequest(
+                val (data) = listComments.execute(user, ListCommentsRequest(
                     limit = limit,
-                    parentId = parentId,
+                    domain = CommentDomain.VIDEO,
+                    resource = Resource(id = "list_test_res"),
                 ))
                 val (results, nextCursor) = data
 
                 Then("유효한 검색 결과가 반환된다.") {
 
-                    results.size shouldBe limit
-                    nextCursor shouldNotBe null
+                    results.size shouldBeLessThanOrEqual limit.toInt()
+                    nextCursor shouldBe null
                 }
 
-                And("그러나 조회 결과 중 이미 삭제된 댓글의 경우") {
+                And("조회 결과 중 이미 삭제된 댓글의 경우") {
                     val deletedComments = results.filter { it.isDeleted }
                     val notDeletedComments = results.filter { !it.isDeleted }
 
@@ -84,46 +97,25 @@ class ListSubCommentsQueryTest : BehaviorSpec() {
                             val subCommentsPagination = listSubComments.execute(user, ListSubCommentsRequest(
                                 parentId = idConverter.decode(it.id)!!
                             ))
-
                             subCommentsPagination.data.results.isNotEmpty()
                         } shouldBe true
                     }
                 }
             }
-
-            When("존재하지 않는 부모 댓글에 대해 검색을 시도할 경우") {
-                val limit = 11L
-                val invalidParentId = -1L
-                val exception = shouldThrow<ResourceNotFoundException> {
-                    listSubComments.execute(user, ListSubCommentsRequest(
-                        limit = limit,
-                        parentId = invalidParentId,
-                    ))
-                }
-
-                Then("ResourceNotFoundException이 발생한다.") {
-                    val expectedErrorDetail = ErrorDetail(
-                        code = "COMMENTOR_RESOURCE_NOT_FOUND_EXCEPTION",
-                        messages = listOf("There is no comment")
-                    )
-
-                    exception.errorDetails shouldBe expectedErrorDetail
-                }
-            }
         }
 
-        Given("임의의 사용자와 부모 댓글이 존재할 때") {
+        Given("임의의 사용자가 존재할 때") {
             val user = User.builder()
                 .setAuthorization("my-authorization")
                 .setProject("list_test_proj")
                 .setOrganization("list_test_org")
                 .build()
-            val parentId = 50L
 
             When("생성일 내림차순 기준으로 모든 목록을 조회한 후") {
-                val (expected) = listSubComments.execute(user, ListSubCommentsRequest(
+                val (expected) = listComments.execute(user, ListCommentsRequest(
                     limit = 1000L,
-                    parentId = parentId,
+                    domain = CommentDomain.VIDEO,
+                    resource = Resource(id = "list_test_res"),
                     sortCondition = SortCondition(
                         criteria = SortCondition.Criteria.CREATED_AT,
                         order = SortCondition.Order.DESC,
@@ -136,10 +128,11 @@ class ListSubCommentsQueryTest : BehaviorSpec() {
 
                     val limit = 4L
                     do {
-                        val (response) = listSubComments.execute(user, ListSubCommentsRequest(
+                        val (response) = listComments.execute(user, ListCommentsRequest(
                             limit = limit,
+                            domain = CommentDomain.VIDEO,
+                            resource = Resource(id = "list_test_res"),
                             nextCursor = cursor,
-                            parentId = parentId,
                             sortCondition = SortCondition(
                                 criteria = SortCondition.Criteria.CREATED_AT,
                                 order = SortCondition.Order.DESC,
@@ -158,9 +151,10 @@ class ListSubCommentsQueryTest : BehaviorSpec() {
             }
 
             When("생성일 오름차순 기준으로 모든 목록을 조회한 후") {
-                val (expected) = listSubComments.execute(user, ListSubCommentsRequest(
+                val (expected) = listComments.execute(user, ListCommentsRequest(
                     limit = 1000L,
-                    parentId = parentId,
+                    domain = CommentDomain.VIDEO,
+                    resource = Resource(id = "list_test_res"),
                     sortCondition = SortCondition(
                         criteria = SortCondition.Criteria.CREATED_AT,
                         order = SortCondition.Order.ASC,
@@ -173,9 +167,10 @@ class ListSubCommentsQueryTest : BehaviorSpec() {
 
                     val limit = 4L
                     do {
-                        val (response) = listSubComments.execute(user, ListSubCommentsRequest(
+                        val (response) = listComments.execute(user, ListCommentsRequest(
                             limit = limit,
-                            parentId = parentId,
+                            domain = CommentDomain.VIDEO,
+                            resource = Resource(id = "list_test_res"),
                             nextCursor = cursor,
                             sortCondition = SortCondition(
                                 criteria = SortCondition.Criteria.CREATED_AT,
@@ -195,9 +190,10 @@ class ListSubCommentsQueryTest : BehaviorSpec() {
             }
 
             When("수정일 내림차순 기준으로 모든 목록을 조회한 후") {
-                val (expected) = listSubComments.execute(user, ListSubCommentsRequest(
+                val (expected) = listComments.execute(user, ListCommentsRequest(
                     limit = 1000L,
-                    parentId = parentId,
+                    domain = CommentDomain.VIDEO,
+                    resource = Resource(id = "list_test_res"),
                     sortCondition = SortCondition(
                         criteria = SortCondition.Criteria.UPDATED_AT,
                         order = SortCondition.Order.DESC,
@@ -210,9 +206,10 @@ class ListSubCommentsQueryTest : BehaviorSpec() {
 
                     val limit = 4L
                     do {
-                        val (response) = listSubComments.execute(user, ListSubCommentsRequest(
+                        val (response) = listComments.execute(user, ListCommentsRequest(
                             limit = limit,
-                            parentId = parentId,
+                            domain = CommentDomain.VIDEO,
+                            resource = Resource(id = "list_test_res"),
                             nextCursor = cursor,
                             sortCondition = SortCondition(
                                 criteria = SortCondition.Criteria.UPDATED_AT,
@@ -232,9 +229,10 @@ class ListSubCommentsQueryTest : BehaviorSpec() {
             }
 
             When("수정일 오름차순 기준으로 모든 목록을 조회한 후") {
-                val (expected) = listSubComments.execute(user, ListSubCommentsRequest(
+                val (expected) = listComments.execute(user, ListCommentsRequest(
                     limit = 1000L,
-                    parentId = parentId,
+                    domain = CommentDomain.VIDEO,
+                    resource = Resource(id = "list_test_res"),
                     sortCondition = SortCondition(
                         criteria = SortCondition.Criteria.UPDATED_AT,
                         order = SortCondition.Order.ASC,
@@ -247,10 +245,11 @@ class ListSubCommentsQueryTest : BehaviorSpec() {
 
                     val limit = 4L
                     do {
-                        val (response) = listSubComments.execute(user, ListSubCommentsRequest(
+                        val (response) = listComments.execute(user, ListCommentsRequest(
                             limit = limit,
+                            domain = CommentDomain.VIDEO,
+                            resource = Resource(id = "list_test_res"),
                             nextCursor = cursor,
-                            parentId = parentId,
                             sortCondition = SortCondition(
                                 criteria = SortCondition.Criteria.UPDATED_AT,
                                 order = SortCondition.Order.ASC,
