@@ -1,9 +1,9 @@
-package ga.injuk.commentor.adapter.out.persistence
+package ga.injuk.commentor.adapter.out.persistence.dataAccess
 
 import ga.injuk.commentor.adapter.out.dto.AffectedRows
-import ga.injuk.commentor.adapter.out.dto.ListCommentsResponse
-import ga.injuk.commentor.adapter.out.dto.GetCommentResponse
 import ga.injuk.commentor.adapter.out.dto.CreateCommentResponse
+import ga.injuk.commentor.adapter.out.dto.GetCommentResponse
+import ga.injuk.commentor.adapter.out.dto.ListCommentsResponse
 import ga.injuk.commentor.application.port.dto.request.*
 import ga.injuk.commentor.domain.User
 

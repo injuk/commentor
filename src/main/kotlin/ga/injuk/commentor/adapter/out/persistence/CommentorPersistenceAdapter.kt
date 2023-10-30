@@ -2,8 +2,10 @@ package ga.injuk.commentor.adapter.out.persistence
 
 import ga.injuk.commentor.adapter.core.exception.InvalidArgumentException
 import ga.injuk.commentor.adapter.core.exception.UncaughtException
-import ga.injuk.commentor.adapter.out.dto.ListCommentsResponse
 import ga.injuk.commentor.adapter.out.dto.GetCommentResponse
+import ga.injuk.commentor.adapter.out.dto.ListCommentsResponse
+import ga.injuk.commentor.adapter.out.persistence.dataAccess.CommentInteractionsDataAccess
+import ga.injuk.commentor.adapter.out.persistence.dataAccess.CommentsDataAccess
 import ga.injuk.commentor.application.port.dto.Pagination
 import ga.injuk.commentor.application.port.dto.request.*
 import ga.injuk.commentor.application.port.out.persistence.*
@@ -19,13 +21,15 @@ import org.slf4j.LoggerFactory
 class CommentorPersistenceAdapter(
     private val commentsDataAccess: CommentsDataAccess,
     private val commentInteractionsDataAccess: CommentInteractionsDataAccess,
-): CreateCommentPort, GetCommentPort, ListCommentsPort, ListSubCommentsPort, UpdateCommentPort, DeleteCommentPort, BulkDeleteCommentPort,
-CreateCommentInteractionPort, GetCommentInteractionPort, UpdateCommentInteractionPort, DeleteCommentInteractionPort {
+) : CreateCommentPort, GetCommentPort, ListCommentsPort, ListSubCommentsPort, UpdateCommentPort, DeleteCommentPort,
+    BulkDeleteCommentPort,
+    CreateCommentInteractionPort, GetCommentInteractionPort, UpdateCommentInteractionPort,
+    DeleteCommentInteractionPort {
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
     override fun create(user: User, request: CreateCommentRequest): Long {
         val (insertId) = commentsDataAccess.insert(user, request)
-        if(insertId == null) {
+        if (insertId == null) {
             throw UncaughtException("failed to create comment resource.")
         }
 
@@ -96,7 +100,7 @@ CreateCommentInteractionPort, GetCommentInteractionPort, UpdateCommentInteractio
 
     override fun create(user: User, request: CreateCommentInteractionRequest): Long {
         val (insertId) = commentInteractionsDataAccess.insert(user, request)
-        if(insertId == null) {
+        if (insertId == null) {
             throw UncaughtException("failed to create comment interaction resource.")
         }
 
@@ -110,7 +114,8 @@ CreateCommentInteractionPort, GetCommentInteractionPort, UpdateCommentInteractio
             CommentInteraction(
                 id = it?.id ?: throw InvalidArgumentException("interaction id cannot be null"),
                 commentId = it.commentId ?: throw InvalidArgumentException("commentId cannot be null"),
-                type = CommentInteractionType.from(it.type) ?: throw InvalidArgumentException("interaction type cannot be null"),
+                type = CommentInteractionType.from(it.type)
+                    ?: throw InvalidArgumentException("interaction type cannot be null"),
                 userId = it.userId ?: throw InvalidArgumentException("userId cannot be null"),
             )
         }
@@ -129,12 +134,13 @@ CreateCommentInteractionPort, GetCommentInteractionPort, UpdateCommentInteractio
     }
 
     private fun <T> tryConvertToComment(comment: T) = runCatching {
-        when(comment) {
+        when (comment) {
             is GetCommentResponse -> Comment(
                 id = comment.id ?: throw InvalidArgumentException("id cannot be null"),
                 parts = comment.parts ?: throw InvalidArgumentException("parts cannot be null"),
                 isDeleted = comment.isDeleted ?: throw InvalidArgumentException("isDeleted cannot be null"),
-                hasSubComments = comment.hasSubComments ?: throw InvalidArgumentException("hasSubComments cannot be null"),
+                hasSubComments = comment.hasSubComments
+                    ?: throw InvalidArgumentException("hasSubComments cannot be null"),
                 likeCount = comment.likeCount ?: throw InvalidArgumentException("likeCount cannot be null"),
                 dislikeCount = comment.dislikeCount ?: throw InvalidArgumentException("dislikeCount cannot be null"),
                 created = Comment.Context(
@@ -155,7 +161,8 @@ CreateCommentInteractionPort, GetCommentInteractionPort, UpdateCommentInteractio
                 id = comment.id ?: throw InvalidArgumentException("id cannot be null"),
                 parts = comment.parts ?: throw InvalidArgumentException("parts cannot be null"),
                 isDeleted = comment.isDeleted ?: throw InvalidArgumentException("isDeleted cannot be null"),
-                hasSubComments = comment.hasSubComments ?: throw InvalidArgumentException("hasSubComments cannot be null"),
+                hasSubComments = comment.hasSubComments
+                    ?: throw InvalidArgumentException("hasSubComments cannot be null"),
                 myInteraction = CommentInteractionType.from(comment.myInteractionType),
                 likeCount = comment.likeCount ?: throw InvalidArgumentException("likeCount cannot be null"),
                 dislikeCount = comment.dislikeCount ?: throw InvalidArgumentException("dislikeCount cannot be null"),

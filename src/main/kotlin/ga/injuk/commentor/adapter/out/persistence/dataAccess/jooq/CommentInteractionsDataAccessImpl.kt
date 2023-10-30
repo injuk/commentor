@@ -1,10 +1,10 @@
-package ga.injuk.commentor.adapter.out.persistence.jooq
+package ga.injuk.commentor.adapter.out.persistence.dataAccess.jooq
 
 import com.mzc.cloudplex.download.persistence.jooq.tables.references.COMMENT_INTERACTIONS
 import ga.injuk.commentor.adapter.out.dto.AffectedRows
 import ga.injuk.commentor.adapter.out.dto.CreateCommentInteractionResponse
 import ga.injuk.commentor.adapter.out.dto.GetCommentInteractionResponse
-import ga.injuk.commentor.adapter.out.persistence.CommentInteractionsDataAccess
+import ga.injuk.commentor.adapter.out.persistence.dataAccess.CommentInteractionsDataAccess
 import ga.injuk.commentor.application.port.dto.request.CreateCommentInteractionRequest
 import ga.injuk.commentor.application.port.dto.request.DeleteCommentInteractionRequest
 import ga.injuk.commentor.application.port.dto.request.GetCommentInteractionRequest
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Repository
 @Repository
 class CommentInteractionsDataAccessImpl(
     private val dsl: DSLContext,
-): CommentInteractionsDataAccess {
+) : CommentInteractionsDataAccess {
 
     override fun insert(user: User, request: CreateCommentInteractionRequest): CreateCommentInteractionResponse {
         val response = dsl.run {
@@ -53,7 +53,7 @@ class CommentInteractionsDataAccessImpl(
                 .from(COMMENT_INTERACTIONS)
                 .where(COMMENT_INTERACTIONS.USER_ID.eq(user.id))
                 .and(COMMENT_INTERACTIONS.COMMENT_ID.eq(request.commentId))
-                .apply { if(request.withLock) forUpdate() }
+                .apply { if (request.withLock) forUpdate() }
         }.singleOrNull()
 
         return response?.let {
