@@ -1,12 +1,12 @@
 package ga.injuk.commentor.application.port.`in`.query
 
-import ga.injuk.commentor.application.Base64Helper
 import ga.injuk.commentor.application.core.extension.refineWith
 import ga.injuk.commentor.application.port.dto.Pagination
 import ga.injuk.commentor.application.port.dto.request.ListCommentsRequest
 import ga.injuk.commentor.application.port.dto.response.ListCommentsResponse
 import ga.injuk.commentor.application.port.`in`.ListCommentsUseCase
 import ga.injuk.commentor.application.port.out.persistence.ListCommentsPort
+import ga.injuk.commentor.common.Base64Helper
 import ga.injuk.commentor.common.IdConverter
 import ga.injuk.commentor.domain.User
 import org.slf4j.LoggerFactory

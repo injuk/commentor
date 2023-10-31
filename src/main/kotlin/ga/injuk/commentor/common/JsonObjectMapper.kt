@@ -1,4 +1,4 @@
-package ga.injuk.commentor.application
+package ga.injuk.commentor.common
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
