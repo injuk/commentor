@@ -41,12 +41,12 @@ class ActionCommentCommand(
         )
 
         val currentStrategy = strategyFactory.from(
-            if (oldInteraction == null) {
-                ActionType.NEW_INTERACTION
+            actionType = if (oldInteraction == null) {
+                ActionType.NEW
             } else if (requestedAction == oldInteraction.type) {
-                ActionType.CANCEL_INTERACTION
+                ActionType.CANCEL
             } else {
-                ActionType.SWITCH_INTERACTION
+                ActionType.SWITCH
             }
         )
 

@@ -5,5 +5,5 @@ import ga.injuk.commentor.application.port.`in`.ActionCommentUseCase
 
 interface CommentInteractionStrategyFactory {
 
-    fun from(strategy: ActionCommentUseCase.ActionType): CommentInteractionStrategy
+    fun from(actionType: ActionCommentUseCase.ActionType): CommentInteractionStrategy
 }
