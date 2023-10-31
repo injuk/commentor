@@ -16,9 +16,9 @@ class CommentInteractionStrategyFactoryImpl(
         const val SWITCH_INTERACTION_STRATEGY_NAME = "switchInteractionStrategy"
     }
 
-    override fun from(strategy: ActionType): CommentInteractionStrategy = when (strategy) {
-        ActionType.NEW_INTERACTION -> strategies[NEW_INTERACTION_STRATEGY_NAME]
-        ActionType.CANCEL_INTERACTION -> strategies[CANCEL_INTERACTION_STRATEGY_NAME]
-        ActionType.SWITCH_INTERACTION -> strategies[SWITCH_INTERACTION_STRATEGY_NAME]
-    } ?: throw UncaughtException("There is no interaction strategies for ${strategy.value}")
+    override fun from(actionType: ActionType): CommentInteractionStrategy = when (actionType) {
+        ActionType.NEW -> strategies[NEW_INTERACTION_STRATEGY_NAME]
+        ActionType.CANCEL -> strategies[CANCEL_INTERACTION_STRATEGY_NAME]
+        ActionType.SWITCH -> strategies[SWITCH_INTERACTION_STRATEGY_NAME]
+    } ?: throw UncaughtException("There is no interaction strategies for ${actionType.value}")
 }
