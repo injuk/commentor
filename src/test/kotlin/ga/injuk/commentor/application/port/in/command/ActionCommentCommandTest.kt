@@ -1,8 +1,8 @@
 package ga.injuk.commentor.application.command
 
 import com.ninjasquad.springmockk.SpykBean
-import ga.injuk.commentor.adapter.core.exception.BadRequestException
-import ga.injuk.commentor.adapter.core.exception.ResourceNotFoundException
+import ga.injuk.commentor.application.core.exception.BadRequestException
+import ga.injuk.commentor.application.core.exception.ResourceNotFoundException
 import ga.injuk.commentor.application.port.dto.request.ActionCommentRequest
 import ga.injuk.commentor.application.port.dto.request.GetCommentInteractionRequest
 import ga.injuk.commentor.application.port.dto.request.GetCommentRequest

@@ -1,9 +1,9 @@
 package ga.injuk.commentor.adapter.`in`.rest
 
-import ga.injuk.commentor.adapter.core.exception.InvalidArgumentException
-import ga.injuk.commentor.adapter.core.exception.UncaughtException
 import ga.injuk.commentor.adapter.core.extension.convert
 import ga.injuk.commentor.adapter.core.extension.convertWith
+import ga.injuk.commentor.application.core.exception.InvalidArgumentException
+import ga.injuk.commentor.application.core.exception.UncaughtException
 import ga.injuk.commentor.application.port.dto.Resource
 import ga.injuk.commentor.application.port.dto.request.BulkDeleteCommentRequest
 import ga.injuk.commentor.application.port.dto.request.DeleteCommentRequest

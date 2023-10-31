@@ -1,7 +1,7 @@
 package ga.injuk.commentor.application.port.`in`.query
 
-import ga.injuk.commentor.adapter.core.exception.BadRequestException
-import ga.injuk.commentor.adapter.core.exception.ResourceNotFoundException
+import ga.injuk.commentor.application.core.exception.BadRequestException
+import ga.injuk.commentor.application.core.exception.ResourceNotFoundException
 import ga.injuk.commentor.application.port.dto.IdEncodedComment
 import ga.injuk.commentor.application.port.dto.request.ListCommentsRequest
 import ga.injuk.commentor.application.port.`in`.ListSubCommentsUseCase

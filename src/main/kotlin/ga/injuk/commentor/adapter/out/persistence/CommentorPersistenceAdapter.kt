@@ -1,10 +1,10 @@
 package ga.injuk.commentor.adapter.out.persistence
 
-import ga.injuk.commentor.adapter.core.exception.InvalidArgumentException
-import ga.injuk.commentor.adapter.core.exception.UncaughtException
 import ga.injuk.commentor.adapter.out.persistence.dataAccess.CommentInteractionsDataAccess
 import ga.injuk.commentor.adapter.out.persistence.dataAccess.CommentsDataAccess
 import ga.injuk.commentor.adapter.out.persistence.mapper.CommentorMapper
+import ga.injuk.commentor.application.core.exception.InvalidArgumentException
+import ga.injuk.commentor.application.core.exception.UncaughtException
 import ga.injuk.commentor.application.port.dto.Pagination
 import ga.injuk.commentor.application.port.dto.request.*
 import ga.injuk.commentor.application.port.out.persistence.*

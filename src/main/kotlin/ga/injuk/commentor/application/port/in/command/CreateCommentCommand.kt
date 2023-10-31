@@ -1,6 +1,6 @@
 package ga.injuk.commentor.application.port.`in`.command
 
-import ga.injuk.commentor.adapter.core.exception.BadRequestException
+import ga.injuk.commentor.application.core.exception.BadRequestException
 import ga.injuk.commentor.application.port.dto.request.CreateCommentRequest
 import ga.injuk.commentor.application.port.dto.response.CreateCommentResponse
 import ga.injuk.commentor.application.port.`in`.CreateCommentUseCase

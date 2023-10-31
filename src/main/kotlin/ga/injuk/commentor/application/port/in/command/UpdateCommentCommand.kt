@@ -1,7 +1,7 @@
 package ga.injuk.commentor.application.port.`in`.command
 
-import ga.injuk.commentor.adapter.core.exception.BadRequestException
-import ga.injuk.commentor.adapter.core.exception.ResourceNotFoundException
+import ga.injuk.commentor.application.core.exception.BadRequestException
+import ga.injuk.commentor.application.core.exception.ResourceNotFoundException
 import ga.injuk.commentor.application.port.dto.request.GetCommentRequest
 import ga.injuk.commentor.application.port.dto.request.UpdateCommentRequest
 import ga.injuk.commentor.application.port.dto.response.UpdateCommentResponse
