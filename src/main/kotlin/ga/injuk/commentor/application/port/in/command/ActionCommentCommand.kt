@@ -8,11 +8,11 @@ import ga.injuk.commentor.application.port.dto.request.GetCommentInteractionRequ
 import ga.injuk.commentor.application.port.dto.request.GetCommentRequest
 import ga.injuk.commentor.application.port.dto.request.UpdateCommentRequest
 import ga.injuk.commentor.application.port.`in`.ActionCommentUseCase
+import ga.injuk.commentor.application.port.`in`.ActionCommentUseCase.ActionType
 import ga.injuk.commentor.application.port.out.persistence.GetCommentInteractionPort
 import ga.injuk.commentor.application.port.out.persistence.GetCommentPort
 import ga.injuk.commentor.application.port.out.persistence.UpdateCommentPort
 import ga.injuk.commentor.domain.User
-import ga.injuk.commentor.domain.model.InteractionStrategy
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -42,11 +42,11 @@ class ActionCommentCommand(
 
         val currentStrategy = strategyFactory.from(
             if (oldInteraction == null) {
-                InteractionStrategy.NEW_INTERACTION
+                ActionType.NEW_INTERACTION
             } else if (requestedAction == oldInteraction.type) {
-                InteractionStrategy.CANCEL_INTERACTION
+                ActionType.CANCEL_INTERACTION
             } else {
-                InteractionStrategy.SWITCH_INTERACTION
+                ActionType.SWITCH_INTERACTION
             }
         )
 
