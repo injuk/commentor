@@ -21,7 +21,7 @@ class CommentorPersistenceAdapter(
     private val commentInteractionsDataAccess: CommentInteractionsDataAccess,
 
     private val commentorMapper: CommentorMapper,
-) : CreateCommentPort, GetCommentPort, ListCommentsPort, ListSubCommentsPort, UpdateCommentPort, DeleteCommentPort,
+) : CreateCommentPort, GetCommentPort, ListCommentsPort, UpdateCommentPort, DeleteCommentPort,
     BulkDeleteCommentPort, CreateCommentInteractionPort, GetCommentInteractionPort, UpdateCommentInteractionPort,
     DeleteCommentInteractionPort {
     private val logger = LoggerFactory.getLogger(this.javaClass)
@@ -48,22 +48,6 @@ class CommentorPersistenceAdapter(
     }
 
     override fun getList(user: User, request: ListCommentsRequest): Pagination<Comment> {
-        val (commentRows, cursor) = commentsDataAccess.findBy(user, request)
-
-        val results = commentRows.map { row ->
-            commentorMapper.mapToComment(row).getOrElse {
-                logger.error(it.message)
-                throw UncaughtException("failed to convert comment")
-            }
-        }
-
-        return Pagination(
-            results = results,
-            nextCursor = cursor,
-        )
-    }
-
-    override fun getList(user: User, request: ListSubCommentsRequest): Pagination<Comment> {
         val (commentRows, cursor) = commentsDataAccess.findBy(user, request)
 
         val results = commentRows.map { row ->

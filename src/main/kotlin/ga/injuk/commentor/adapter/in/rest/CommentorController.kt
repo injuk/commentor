@@ -5,14 +5,16 @@ import ga.injuk.commentor.adapter.core.exception.UncaughtException
 import ga.injuk.commentor.adapter.core.extension.convert
 import ga.injuk.commentor.adapter.core.extension.convertWith
 import ga.injuk.commentor.application.port.dto.Resource
-import ga.injuk.commentor.application.port.dto.request.*
+import ga.injuk.commentor.application.port.dto.request.BulkDeleteCommentRequest
+import ga.injuk.commentor.application.port.dto.request.DeleteCommentRequest
+import ga.injuk.commentor.application.port.dto.request.ListCommentsRequest
+import ga.injuk.commentor.application.port.dto.request.UpdateCommentRequest
 import ga.injuk.commentor.application.port.`in`.*
 import ga.injuk.commentor.common.IdConverter
 import ga.injuk.commentor.domain.User
-import ga.injuk.commentor.domain.model.*
+import ga.injuk.commentor.domain.model.CommentDomain
+import ga.injuk.commentor.domain.model.CommentInteractionType
 import ga.injuk.commentor.models.*
-import ga.injuk.commentor.models.ActionCommentRequest
-import ga.injuk.commentor.models.CreateCommentRequest
 import ga.injuk.commentor.operations.CommentApi
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
@@ -29,14 +31,14 @@ class CommentorController(
     private val bulkDeleteComments: BulkDeleteCommentUseCase,
     private val actionComment: ActionCommentUseCase,
     private val idConverter: IdConverter,
-): CommentApi {
+) : CommentApi {
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
     override fun createComment(
         authorization: String,
         projectId: String,
         organizationId: String?,
-        createCommentRequest: CreateCommentRequest?
+        createCommentRequest: CreateCommentRequest?,
     ): ResponseEntity<CreateCommentResponse> {
         val user = User.builder()
             .setAuthorization(authorization)
@@ -60,7 +62,7 @@ class CommentorController(
         nextCursor: String?,
         organizationId: String?,
         domain: String?,
-        resourceId: String?
+        resourceId: String?,
     ): ResponseEntity<ListCommentsResponse> {
         val user = User.builder()
             .setAuthorization(authorization)
@@ -73,7 +75,7 @@ class CommentorController(
             data = ListCommentsRequest(
                 limit = limit?.toLong(),
                 nextCursor = nextCursor,
-                domain = when(domain) {
+                domain = when (domain) {
                     "ARTICLE" -> CommentDomain.ARTICLE
                     else -> CommentDomain.NONE
                 },
@@ -92,7 +94,7 @@ class CommentorController(
         projectId: String,
         organizationId: String?,
         limit: Int?,
-        nextCursor: String?
+        nextCursor: String?,
     ): ResponseEntity<ListSubCommentsResponse> {
         val user = User.builder()
             .setAuthorization(authorization)
@@ -102,7 +104,7 @@ class CommentorController(
 
         val (results, cursor) = listSubComments.execute(
             user = user,
-            data = ListSubCommentsRequest(
+            data = ListCommentsRequest(
                 limit = limit?.toLong(),
                 nextCursor = nextCursor,
                 parentId = id.decodeToLong()
@@ -119,7 +121,7 @@ class CommentorController(
         authorization: String,
         projectId: String,
         organizationId: String?,
-        patchCommentRequest: PatchCommentRequest?
+        patchCommentRequest: PatchCommentRequest?,
     ): ResponseEntity<PatchCommentResponse> {
         val user = User.builder()
             .setAuthorization(authorization)
@@ -145,7 +147,7 @@ class CommentorController(
         id: String,
         authorization: String,
         projectId: String,
-        organizationId: String?
+        organizationId: String?,
     ): ResponseEntity<Unit> {
         val user = User.builder()
             .setAuthorization(authorization)
@@ -165,7 +167,7 @@ class CommentorController(
         authorization: String,
         projectId: String,
         organizationId: String?,
-        bulkDeleteCommentsRequest: BulkDeleteCommentsRequest?
+        bulkDeleteCommentsRequest: BulkDeleteCommentsRequest?,
     ): ResponseEntity<Unit> {
         val user = User.builder()
             .setAuthorization(authorization)
@@ -193,7 +195,7 @@ class CommentorController(
         authorization: String,
         projectId: String,
         organizationId: String?,
-        actionCommentRequest: ActionCommentRequest?
+        actionCommentRequest: ActionCommentRequest?,
     ): ResponseEntity<Unit> {
         val user = User.builder()
             .setAuthorization(authorization)
@@ -206,7 +208,7 @@ class CommentorController(
             user = user,
             data = ga.injuk.commentor.application.port.dto.request.ActionCommentRequest(
                 id = id.decodeToLong(),
-                action = when(request.type) {
+                action = when (request.type) {
                     ActionCommentRequest.Type.LIKE -> CommentInteractionType.LIKE
                     ActionCommentRequest.Type.DISLIKE -> CommentInteractionType.DISLIKE
                 }
@@ -221,7 +223,7 @@ class CommentorController(
         authorization: String,
         projectId: String,
         organizationId: String?,
-        createSubCommentRequest: CreateSubCommentRequest?
+        createSubCommentRequest: CreateSubCommentRequest?,
     ): ResponseEntity<CreateSubCommentResponse> {
         val user = User.builder()
             .setAuthorization(authorization)
@@ -239,12 +241,9 @@ class CommentorController(
         )
     }
 
-    private fun <T> T?.tryRemoveNullability()
-        = this ?: throw UncaughtException("Request data cannot be null")
+    private fun <T> T?.tryRemoveNullability() = this ?: throw UncaughtException("Request data cannot be null")
 
-    private fun String.decodeToLong()
-        = idConverter.decode(this) ?: throw InvalidArgumentException("Cannot decode id")
+    private fun String.decodeToLong() = idConverter.decode(this) ?: throw InvalidArgumentException("Cannot decode id")
 
-    private fun <T> responseWithNoContent()
-        = ResponseEntity.noContent().build<T>()
+    private fun <T> responseWithNoContent() = ResponseEntity.noContent().build<T>()
 }

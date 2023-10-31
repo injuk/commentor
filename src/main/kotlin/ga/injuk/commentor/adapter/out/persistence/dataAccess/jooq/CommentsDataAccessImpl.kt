@@ -137,9 +137,16 @@ class CommentsDataAccessImpl(
                 .and(
                     user.district.organization?.id?.let { c.ORG_ID.eq(it) } ?: noCondition()
                 )
-                .and(c.DOMAIN.eq(request.domain.value))
-                .and(c.RESOURCE_ID.eq(request.resource?.id))
-                .and(c.PARENT_ID.isNull)
+                .apply {
+                    if (request.parentId == null) {
+                        and(c.DOMAIN.eq(request.domain.value))
+                        and(c.RESOURCE_ID.eq(request.resource?.id))
+                        and(c.PARENT_ID.isNull)
+                    } else {
+                        // 부모 댓글에 대한 자식 댓글 검색
+                        and(c.PARENT_ID.eq(request.parentId))
+                    }
+                }
 
             val (criteria, order) = request.sortCondition.decideCriteriaAndOrder()
 
@@ -199,88 +206,6 @@ class CommentsDataAccessImpl(
         }
 
         criteria to order
-    }
-
-    override fun findBy(user: User, request: ListSubCommentsRequest): ListCommentsResponse {
-        val limit = request.limit ?: 20L
-
-        val response = dsl.run {
-            val selectStep = select(
-                c.ID,
-                c.ORG_ID,
-                c.PROJECT_ID,
-                c.DATA,
-                c.IS_DELETED,
-                field(
-                    exists(
-                        selectOne()
-                            .from(sc)
-                            .where(
-                                sc.PARENT_ID.eq(c.ID)
-                            )
-                    )
-                ).`as`(HAS_SUB_COMMENTS),
-                concat(
-                    c.CREATED_AT,
-                    lpadByZero(),
-                ).`as`(NEXT_CURSOR),
-                COMMENT_INTERACTIONS.TYPE,
-                c.LIKE_COUNT,
-                c.DISLIKE_COUNT,
-                c.CREATED_AT,
-                c.CREATED_BY_ID,
-                c.UPDATED_AT,
-                c.UPDATED_BY_ID
-            ).from(c)
-                .leftJoin(COMMENT_INTERACTIONS)
-                .on(
-                    COMMENT_INTERACTIONS.COMMENT_ID.eq(c.ID)
-                        .and(COMMENT_INTERACTIONS.USER_ID.eq(user.id))
-                )
-                .where(c.PROJECT_ID.eq(user.district.project.id))
-                .and(
-                    user.district.organization?.id?.let { c.ORG_ID.eq(it) } ?: noCondition()
-                )
-                .and(c.PARENT_ID.eq(request.parentId))
-
-            val (criteria, order) = request.sortCondition.decideCriteriaAndOrder()
-
-            selectStep.apply {
-                if (request.nextCursor != null) {
-                    and(
-                        concat(criteria, lpadByZero()).run {
-                            when (request.sortCondition.order) {
-                                SortCondition.Order.ASC -> ge(request.nextCursor)
-                                SortCondition.Order.DESC -> le(request.nextCursor)
-                            }
-                        }
-                    )
-                }
-            }
-                .orderBy(order)
-                .limit(limit + 1)
-        }.toList()
-
-        val (result, cursorCandidate) = response.getCursorCandidateOrNullBy(limit)
-
-        return ListCommentsResponse(
-            rows = result.map {
-                ListCommentsResponse.Row(
-                    id = it.get(COMMENTS.ID),
-                    parts = convertToComments(it.get(COMMENTS.DATA)),
-                    isDeleted = it.get(COMMENTS.IS_DELETED),
-                    hasSubComments = it.get(HAS_SUB_COMMENTS) as? Boolean,
-                    myInteractionType = it.get(COMMENT_INTERACTIONS.TYPE),
-                    likeCount = it.get(COMMENTS.LIKE_COUNT),
-                    dislikeCount = it.get(COMMENTS.DISLIKE_COUNT),
-                    createdAt = it.get(COMMENTS.CREATED_AT),
-                    createdBy = it.get(COMMENTS.CREATED_BY_ID),
-                    updatedAt = it.get(COMMENTS.UPDATED_AT),
-                    updatedBy = it.get(COMMENTS.UPDATED_BY_ID),
-                )
-            },
-            cursor = cursorCandidate?.get(NEXT_CURSOR) as? String,
-        )
     }
 
     override fun update(user: User, request: UpdateCommentRequest): AffectedRows = dsl.run {

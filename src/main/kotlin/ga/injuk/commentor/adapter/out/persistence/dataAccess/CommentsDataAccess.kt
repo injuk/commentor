@@ -14,8 +14,6 @@ interface CommentsDataAccess {
 
     fun findBy(user: User, request: ListCommentsRequest): ListCommentsResponse
 
-    fun findBy(user: User, request: ListSubCommentsRequest): ListCommentsResponse
-
     fun update(user: User, request: UpdateCommentRequest): AffectedRows
 
     fun delete(user: User, request: DeleteCommentRequest): AffectedRows

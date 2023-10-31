@@ -10,4 +10,6 @@ data class ListCommentsRequest(
     val resource: Resource? = null,
     val domain: CommentDomain = CommentDomain.NONE,
     val sortCondition: SortCondition = SortCondition(),
+
+    val parentId: Long? = null,
 )

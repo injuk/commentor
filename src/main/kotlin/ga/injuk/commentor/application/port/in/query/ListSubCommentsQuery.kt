@@ -1,15 +1,16 @@
 package ga.injuk.commentor.application.port.`in`.query
 
+import ga.injuk.commentor.adapter.core.exception.BadRequestException
 import ga.injuk.commentor.adapter.core.exception.ResourceNotFoundException
 import ga.injuk.commentor.application.Base64Helper
 import ga.injuk.commentor.application.core.extension.refineWith
 import ga.injuk.commentor.application.port.dto.Pagination
 import ga.injuk.commentor.application.port.dto.request.GetCommentRequest
-import ga.injuk.commentor.application.port.dto.request.ListSubCommentsRequest
+import ga.injuk.commentor.application.port.dto.request.ListCommentsRequest
 import ga.injuk.commentor.application.port.dto.response.ListCommentsResponse
 import ga.injuk.commentor.application.port.`in`.ListSubCommentsUseCase
 import ga.injuk.commentor.application.port.out.persistence.GetCommentPort
-import ga.injuk.commentor.application.port.out.persistence.ListSubCommentsPort
+import ga.injuk.commentor.application.port.out.persistence.ListCommentsPort
 import ga.injuk.commentor.common.IdConverter
 import ga.injuk.commentor.domain.User
 import org.slf4j.LoggerFactory
@@ -19,18 +20,21 @@ import org.springframework.stereotype.Service
 class ListSubCommentsQuery(
     private val idConverter: IdConverter,
     private val getCommentPort: GetCommentPort,
-    private val listSubCommentsPort: ListSubCommentsPort,
+    private val listCommentsPort: ListCommentsPort,
 ) : ListSubCommentsUseCase {
     // TODO: base64 이외의 방법으로 nextCursor를 암복호화하기
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    override fun execute(user: User, data: ListSubCommentsRequest): ListCommentsResponse {
+    override fun execute(user: User, data: ListCommentsRequest): ListCommentsResponse {
+        if (data.parentId == null) {
+            throw BadRequestException("Parent Id cannot be null")
+        }
         getCommentPort.get(user, GetCommentRequest(commentId = data.parentId))
             ?: throw ResourceNotFoundException("There is no comment")
 
-        val (results, nextCursor) = listSubCommentsPort.getList(
+        val (results, nextCursor) = listCommentsPort.getList(
             user = user,
-            request = ListSubCommentsRequest(
+            request = ListCommentsRequest(
                 parentId = data.parentId,
                 limit = data.limit,
                 sortCondition = data.sortCondition,

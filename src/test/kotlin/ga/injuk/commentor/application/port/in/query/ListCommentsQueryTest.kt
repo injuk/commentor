@@ -3,7 +3,6 @@ package ga.injuk.commentor.application.port.`in`.query
 import ga.injuk.commentor.application.port.dto.IdEncodedComment
 import ga.injuk.commentor.application.port.dto.Resource
 import ga.injuk.commentor.application.port.dto.request.ListCommentsRequest
-import ga.injuk.commentor.application.port.dto.request.ListSubCommentsRequest
 import ga.injuk.commentor.application.port.`in`.ListCommentsUseCase
 import ga.injuk.commentor.application.port.`in`.ListSubCommentsUseCase
 import ga.injuk.commentor.common.IdConverter
@@ -94,7 +93,7 @@ class ListCommentsQueryTest : BehaviorSpec() {
                     Then("각 댓글의 자식 댓글 수는 0이 아니어야 한다") {
 
                         parentComments.all {
-                            val subCommentsPagination = listSubComments.execute(user, ListSubCommentsRequest(
+                            val subCommentsPagination = listSubComments.execute(user, ListCommentsRequest(
                                 parentId = idConverter.decode(it.id)!!
                             ))
                             subCommentsPagination.data.results.isNotEmpty()
