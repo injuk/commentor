@@ -1,4 +1,4 @@
-package ga.injuk.commentor.application
+package ga.injuk.commentor.common
 
 import java.util.*
 

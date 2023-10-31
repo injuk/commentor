@@ -8,8 +8,8 @@ import ga.injuk.commentor.adapter.out.dto.CreateCommentResponse
 import ga.injuk.commentor.adapter.out.dto.GetCommentResponse
 import ga.injuk.commentor.adapter.out.dto.ListCommentsResponse
 import ga.injuk.commentor.adapter.out.persistence.dataAccess.CommentsDataAccess
-import ga.injuk.commentor.application.JsonObjectMapper
 import ga.injuk.commentor.application.port.dto.request.*
+import ga.injuk.commentor.common.JsonObjectMapper
 import ga.injuk.commentor.domain.User
 import ga.injuk.commentor.domain.model.CommentInteractionType.DISLIKE
 import ga.injuk.commentor.domain.model.CommentInteractionType.LIKE
