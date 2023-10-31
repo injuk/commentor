@@ -1,12 +1,12 @@
 package ga.injuk.commentor.application.port.`in`.query
 
-import ga.injuk.commentor.application.port.dto.IdEncodedComment
 import ga.injuk.commentor.application.port.dto.Resource
 import ga.injuk.commentor.application.port.dto.request.ListCommentsRequest
 import ga.injuk.commentor.application.port.`in`.ListCommentsUseCase
 import ga.injuk.commentor.application.port.`in`.ListSubCommentsUseCase
 import ga.injuk.commentor.common.IdConverter
 import ga.injuk.commentor.domain.User
+import ga.injuk.commentor.domain.model.Comment
 import ga.injuk.commentor.domain.model.CommentDomain
 import ga.injuk.commentor.domain.model.SortCondition
 import io.kotest.core.extensions.Extension
@@ -91,7 +91,7 @@ class ListCommentsQueryTest : BehaviorSpec() {
 
                         parentComments.all {
                             val subCommentsPagination = listSubComments.execute(user, ListCommentsRequest(
-                                parentId = IdConverter.convert(it.id)!!
+                                parentId = IdConverter.convert(it.encodedId)!!
                             ))
                             subCommentsPagination.data.results.isNotEmpty()
                         } shouldBe true
@@ -120,7 +120,7 @@ class ListCommentsQueryTest : BehaviorSpec() {
 
                 And("다시 첫 목록부터 커서 기반 페이지네이션을 통해 모든 목록을 생성일 기준 내림차순으로 다시 순회할 경우") {
                     var cursor: String? = null
-                    val comments = mutableListOf<IdEncodedComment>()
+                    val comments = mutableListOf<Comment>()
 
                     val limit = 4L
                     do {
@@ -159,7 +159,7 @@ class ListCommentsQueryTest : BehaviorSpec() {
 
                 And("다시 첫 목록부터 커서 기반 페이지네이션을 통해 모든 목록을 생성일 기준 오름차순으로 다시 순회할 경우") {
                     var cursor: String? = null
-                    val comments = mutableListOf<IdEncodedComment>()
+                    val comments = mutableListOf<Comment>()
 
                     val limit = 4L
                     do {
@@ -198,7 +198,7 @@ class ListCommentsQueryTest : BehaviorSpec() {
 
                 And("다시 첫 목록부터 커서 기반 페이지네이션을 통해 모든 목록을 수정일 기준 내림차순으로 다시 순회할 경우") {
                     var cursor: String? = null
-                    val comments = mutableListOf<IdEncodedComment>()
+                    val comments = mutableListOf<Comment>()
 
                     val limit = 4L
                     do {
@@ -237,7 +237,7 @@ class ListCommentsQueryTest : BehaviorSpec() {
 
                 And("다시 첫 목록부터 커서 기반 페이지네이션을 통해 모든 목록을 수정일 기준 오름차순으로 다시 순회할 경우") {
                     var cursor: String? = null
-                    val comments = mutableListOf<IdEncodedComment>()
+                    val comments = mutableListOf<Comment>()
 
                     val limit = 4L
                     do {

@@ -2,8 +2,6 @@ package ga.injuk.commentor.application.port.`in`.query
 
 import ga.injuk.commentor.application.core.exception.BadRequestException
 import ga.injuk.commentor.application.core.exception.ResourceNotFoundException
-import ga.injuk.commentor.application.core.exception.UncaughtException
-import ga.injuk.commentor.application.core.extension.refineWith
 import ga.injuk.commentor.application.port.dto.Pagination
 import ga.injuk.commentor.application.port.dto.request.GetCommentRequest
 import ga.injuk.commentor.application.port.dto.request.ListCommentsRequest
@@ -12,7 +10,6 @@ import ga.injuk.commentor.application.port.`in`.ListSubCommentsUseCase
 import ga.injuk.commentor.application.port.out.persistence.GetCommentPort
 import ga.injuk.commentor.application.port.out.persistence.ListCommentsPort
 import ga.injuk.commentor.common.Base64Helper
-import ga.injuk.commentor.common.IdConverter
 import ga.injuk.commentor.domain.User
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -49,7 +46,13 @@ class ListSubCommentsQuery(
         return ListCommentsResponse(
             Pagination(
                 results = results.map {
-                    it.refineWith(IdConverter.convert(it.id) ?: throw UncaughtException("Failed to convert comment id"))
+                    it.copy(
+                        parts = if (it.isDeleted) {
+                            emptyList()
+                        } else {
+                            it.parts
+                        }
+                    )
                 },
                 nextCursor = Base64Helper.encode(nextCursor),
             )
