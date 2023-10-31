@@ -2,6 +2,7 @@ package ga.injuk.commentor.application.port.`in`.command
 
 import ga.injuk.commentor.application.core.exception.BadRequestException
 import ga.injuk.commentor.application.core.exception.ResourceNotFoundException
+import ga.injuk.commentor.application.core.exception.UncaughtException
 import ga.injuk.commentor.application.port.dto.request.CreateCommentRequest
 import ga.injuk.commentor.application.port.dto.request.GetCommentRequest
 import ga.injuk.commentor.application.port.dto.response.CreateCommentResponse
@@ -15,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 class CreateSubCommentCommand(
-    private val idConverter: IdConverter,
     private val getCommentPort: GetCommentPort,
     private val createCommentPort: CreateCommentPort,
 ) : CreateSubCommentUseCase {
@@ -39,7 +39,7 @@ class CreateSubCommentCommand(
         )
 
         return CreateCommentResponse(
-            id = idConverter.encode(result)
+            id = IdConverter.convert(result) ?: throw UncaughtException("Failed to convert comment id")
         )
     }
 }

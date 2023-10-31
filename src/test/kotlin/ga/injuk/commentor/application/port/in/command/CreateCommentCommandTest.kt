@@ -30,9 +30,6 @@ class CreateCommentCommandTest : BehaviorSpec() {
     @Autowired
     private lateinit var createComment: CreateCommentUseCase
 
-    @Autowired
-    private lateinit var idConverter: IdConverter
-
     init {
         Given("사용자와 댓글이 준비되었을 때") {
             val user = User.builder()
@@ -60,7 +57,7 @@ class CreateCommentCommandTest : BehaviorSpec() {
                     parts = commentParts,
                 )
                 val response = createComment.execute(user, request)
-                val result = idConverter.decode(response.id)
+                val result = IdConverter.convert(response.id)
 
                 Then("Long 형태의 id를 반환받을 수 있다.") {
 

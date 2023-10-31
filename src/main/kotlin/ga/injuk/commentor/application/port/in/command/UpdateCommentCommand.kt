@@ -2,6 +2,7 @@ package ga.injuk.commentor.application.port.`in`.command
 
 import ga.injuk.commentor.application.core.exception.BadRequestException
 import ga.injuk.commentor.application.core.exception.ResourceNotFoundException
+import ga.injuk.commentor.application.core.exception.UncaughtException
 import ga.injuk.commentor.application.port.dto.request.GetCommentRequest
 import ga.injuk.commentor.application.port.dto.request.UpdateCommentRequest
 import ga.injuk.commentor.application.port.dto.response.UpdateCommentResponse
@@ -15,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 class UpdateCommentCommand(
-    private val idConverter: IdConverter,
     private val getCommentPort: GetCommentPort,
     private val updateCommentPort: UpdateCommentPort,
 ) : UpdateCommentUseCase {
@@ -42,7 +42,7 @@ class UpdateCommentCommand(
         }
 
         return UpdateCommentResponse(
-            id = idConverter.encode(data.id)
+            id = IdConverter.convert(data.id) ?: throw UncaughtException("Failed to convert comment id")
         )
     }
 }

@@ -34,9 +34,6 @@ class UpdateCommentCommandTest : BehaviorSpec() {
     @Autowired
     private lateinit var updateComment: UpdateCommentUseCase
 
-    @Autowired
-    private lateinit var idConverter: IdConverter
-
     @SpykBean
     private lateinit var commentsDataAccess: CommentsDataAccess
 
@@ -69,7 +66,7 @@ class UpdateCommentCommandTest : BehaviorSpec() {
                     parts = commentParts,
                 )
                 val response = updateComment.execute(user, request)
-                val result = idConverter.decode(response.id)
+                val result = IdConverter.convert(response.id)
 
                 Then("Long 형태의 id를 반환받을 수 있다.") {
 
