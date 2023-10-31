@@ -1,8 +1,9 @@
 package ga.injuk.commentor.application.port.`in`.query
 
+import ga.injuk.commentor.adapter.core.exception.BadRequestException
 import ga.injuk.commentor.adapter.core.exception.ResourceNotFoundException
 import ga.injuk.commentor.application.port.dto.IdEncodedComment
-import ga.injuk.commentor.application.port.dto.request.ListSubCommentsRequest
+import ga.injuk.commentor.application.port.dto.request.ListCommentsRequest
 import ga.injuk.commentor.application.port.`in`.ListSubCommentsUseCase
 import ga.injuk.commentor.common.ErrorDetail
 import ga.injuk.commentor.common.IdConverter
@@ -42,7 +43,7 @@ class ListSubCommentsQueryTest : BehaviorSpec() {
 
             When("유효한 검색 조건과 함께 검색을 시도할 경우") {
                 val limit = 11L
-                val (data) = listSubComments.execute(user, ListSubCommentsRequest(
+                val (data) = listSubComments.execute(user, ListCommentsRequest(
                     limit = limit,
                     parentId = parentId,
                 ))
@@ -81,7 +82,7 @@ class ListSubCommentsQueryTest : BehaviorSpec() {
                     Then("각 댓글의 자식 댓글 수는 0이 아니어야 한다") {
 
                         parentComments.all {
-                            val subCommentsPagination = listSubComments.execute(user, ListSubCommentsRequest(
+                            val subCommentsPagination = listSubComments.execute(user, ListCommentsRequest(
                                 parentId = idConverter.decode(it.id)!!
                             ))
 
@@ -91,11 +92,31 @@ class ListSubCommentsQueryTest : BehaviorSpec() {
                 }
             }
 
+            When("부모 댓글을 명시하지 않고 자식 댓글 검색을 시도할 경우") {
+                val limit = 11L
+                val invalidParentId: Long? = null
+                val exception = shouldThrow<BadRequestException> {
+                    listSubComments.execute(user, ListCommentsRequest(
+                        limit = limit,
+                        parentId = invalidParentId,
+                    ))
+                }
+
+                Then("BadRequestException이 발생한다.") {
+                    val expectedErrorDetail = ErrorDetail(
+                        code = "COMMENTOR_BAD_REQUEST_EXCEPTION",
+                        messages = listOf("Parent Id cannot be null")
+                    )
+
+                    exception.errorDetails shouldBe expectedErrorDetail
+                }
+            }
+
             When("존재하지 않는 부모 댓글에 대해 검색을 시도할 경우") {
                 val limit = 11L
                 val invalidParentId = -1L
                 val exception = shouldThrow<ResourceNotFoundException> {
-                    listSubComments.execute(user, ListSubCommentsRequest(
+                    listSubComments.execute(user, ListCommentsRequest(
                         limit = limit,
                         parentId = invalidParentId,
                     ))
@@ -121,7 +142,7 @@ class ListSubCommentsQueryTest : BehaviorSpec() {
             val parentId = 50L
 
             When("생성일 내림차순 기준으로 모든 목록을 조회한 후") {
-                val (expected) = listSubComments.execute(user, ListSubCommentsRequest(
+                val (expected) = listSubComments.execute(user, ListCommentsRequest(
                     limit = 1000L,
                     parentId = parentId,
                     sortCondition = SortCondition(
@@ -136,7 +157,7 @@ class ListSubCommentsQueryTest : BehaviorSpec() {
 
                     val limit = 4L
                     do {
-                        val (response) = listSubComments.execute(user, ListSubCommentsRequest(
+                        val (response) = listSubComments.execute(user, ListCommentsRequest(
                             limit = limit,
                             nextCursor = cursor,
                             parentId = parentId,
@@ -158,7 +179,7 @@ class ListSubCommentsQueryTest : BehaviorSpec() {
             }
 
             When("생성일 오름차순 기준으로 모든 목록을 조회한 후") {
-                val (expected) = listSubComments.execute(user, ListSubCommentsRequest(
+                val (expected) = listSubComments.execute(user, ListCommentsRequest(
                     limit = 1000L,
                     parentId = parentId,
                     sortCondition = SortCondition(
@@ -173,7 +194,7 @@ class ListSubCommentsQueryTest : BehaviorSpec() {
 
                     val limit = 4L
                     do {
-                        val (response) = listSubComments.execute(user, ListSubCommentsRequest(
+                        val (response) = listSubComments.execute(user, ListCommentsRequest(
                             limit = limit,
                             parentId = parentId,
                             nextCursor = cursor,
@@ -195,7 +216,7 @@ class ListSubCommentsQueryTest : BehaviorSpec() {
             }
 
             When("수정일 내림차순 기준으로 모든 목록을 조회한 후") {
-                val (expected) = listSubComments.execute(user, ListSubCommentsRequest(
+                val (expected) = listSubComments.execute(user, ListCommentsRequest(
                     limit = 1000L,
                     parentId = parentId,
                     sortCondition = SortCondition(
@@ -210,7 +231,7 @@ class ListSubCommentsQueryTest : BehaviorSpec() {
 
                     val limit = 4L
                     do {
-                        val (response) = listSubComments.execute(user, ListSubCommentsRequest(
+                        val (response) = listSubComments.execute(user, ListCommentsRequest(
                             limit = limit,
                             parentId = parentId,
                             nextCursor = cursor,
@@ -232,7 +253,7 @@ class ListSubCommentsQueryTest : BehaviorSpec() {
             }
 
             When("수정일 오름차순 기준으로 모든 목록을 조회한 후") {
-                val (expected) = listSubComments.execute(user, ListSubCommentsRequest(
+                val (expected) = listSubComments.execute(user, ListCommentsRequest(
                     limit = 1000L,
                     parentId = parentId,
                     sortCondition = SortCondition(
@@ -247,7 +268,7 @@ class ListSubCommentsQueryTest : BehaviorSpec() {
 
                     val limit = 4L
                     do {
-                        val (response) = listSubComments.execute(user, ListSubCommentsRequest(
+                        val (response) = listSubComments.execute(user, ListCommentsRequest(
                             limit = limit,
                             nextCursor = cursor,
                             parentId = parentId,
