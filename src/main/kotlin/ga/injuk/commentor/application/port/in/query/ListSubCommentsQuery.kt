@@ -1,8 +1,8 @@
 package ga.injuk.commentor.application.port.`in`.query
 
-import ga.injuk.commentor.adapter.core.exception.BadRequestException
-import ga.injuk.commentor.adapter.core.exception.ResourceNotFoundException
 import ga.injuk.commentor.application.Base64Helper
+import ga.injuk.commentor.application.core.exception.BadRequestException
+import ga.injuk.commentor.application.core.exception.ResourceNotFoundException
 import ga.injuk.commentor.application.core.extension.refineWith
 import ga.injuk.commentor.application.port.dto.Pagination
 import ga.injuk.commentor.application.port.dto.request.GetCommentRequest

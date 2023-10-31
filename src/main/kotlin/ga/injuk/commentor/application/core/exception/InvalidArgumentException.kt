@@ -1,11 +1,11 @@
-package ga.injuk.commentor.adapter.core.exception
+package ga.injuk.commentor.application.core.exception
 
 import ga.injuk.commentor.common.CommentorError
 import ga.injuk.commentor.common.ErrorDetail
 
 class InvalidArgumentException(
     private val msg: String? = null,
-): CommentorError, RuntimeException() {
+) : CommentorError, RuntimeException() {
     override val errorDetails: ErrorDetail
         get() = ErrorDetail(
             code = "COMMENTOR_INVALID_ARGUMENT_EXCEPTION",

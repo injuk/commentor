@@ -1,6 +1,6 @@
 package ga.injuk.commentor.application.core.factory.impl
 
-import ga.injuk.commentor.adapter.core.exception.UncaughtException
+import ga.injuk.commentor.application.core.exception.UncaughtException
 import ga.injuk.commentor.application.core.factory.CommentInteractionStrategyFactory
 import ga.injuk.commentor.application.core.strategy.CommentInteractionStrategy
 import ga.injuk.commentor.application.port.`in`.ActionCommentUseCase.ActionType

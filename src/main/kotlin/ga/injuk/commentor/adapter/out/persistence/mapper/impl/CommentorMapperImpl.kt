@@ -1,9 +1,9 @@
 package ga.injuk.commentor.adapter.out.persistence.mapper.impl
 
-import ga.injuk.commentor.adapter.core.exception.InvalidArgumentException
 import ga.injuk.commentor.adapter.out.dto.GetCommentResponse
 import ga.injuk.commentor.adapter.out.dto.ListCommentsResponse
 import ga.injuk.commentor.adapter.out.persistence.mapper.CommentorMapper
+import ga.injuk.commentor.application.core.exception.InvalidArgumentException
 import ga.injuk.commentor.domain.model.By
 import ga.injuk.commentor.domain.model.Comment
 import ga.injuk.commentor.domain.model.CommentInteractionType
