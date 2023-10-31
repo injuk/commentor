@@ -30,7 +30,6 @@ class CommentorController(
     private val createSubComment: CreateSubCommentUseCase,
     private val bulkDeleteComments: BulkDeleteCommentUseCase,
     private val actionComment: ActionCommentUseCase,
-    private val idConverter: IdConverter,
 ) : CommentApi {
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
@@ -243,7 +242,7 @@ class CommentorController(
 
     private fun <T> T?.tryRemoveNullability() = this ?: throw UncaughtException("Request data cannot be null")
 
-    private fun String.decodeToLong() = idConverter.decode(this) ?: throw InvalidArgumentException("Cannot decode id")
+    private fun String.decodeToLong() = IdConverter.convert(this) ?: throw InvalidArgumentException("Cannot decode id")
 
     private fun <T> responseWithNoContent() = ResponseEntity.noContent().build<T>()
 }

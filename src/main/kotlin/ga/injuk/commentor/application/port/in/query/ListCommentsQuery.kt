@@ -1,5 +1,6 @@
 package ga.injuk.commentor.application.port.`in`.query
 
+import ga.injuk.commentor.application.core.exception.UncaughtException
 import ga.injuk.commentor.application.core.extension.refineWith
 import ga.injuk.commentor.application.port.dto.Pagination
 import ga.injuk.commentor.application.port.dto.request.ListCommentsRequest
@@ -14,7 +15,6 @@ import org.springframework.stereotype.Service
 
 @Service
 class ListCommentsQuery(
-    private val idConverter: IdConverter,
     private val listCommentsPort: ListCommentsPort,
 ) : ListCommentsUseCase {
     // TODO: base64 이외의 방법으로 nextCursor를 암복호화하기
@@ -40,7 +40,7 @@ class ListCommentsQuery(
         return ListCommentsResponse(
             Pagination(
                 results = results.map {
-                    it.refineWith(idConverter.encode(it.id))
+                    it.refineWith(IdConverter.convert(it.id) ?: throw UncaughtException("Failed to convert comment id"))
                 },
                 nextCursor = Base64Helper.encode(nextCursor),
             )

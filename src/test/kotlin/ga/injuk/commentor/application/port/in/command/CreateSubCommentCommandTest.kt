@@ -31,9 +31,6 @@ class CreateSubCommentCommandTest : BehaviorSpec() {
     @Autowired
     private lateinit var createSubComment: CreateSubCommentUseCase
 
-    @Autowired
-    private lateinit var idConverter: IdConverter
-
     init {
         Given("사용자와 부모 댓글, 그리고 대댓글이 준비되었을 때") {
             val user = User.builder()
@@ -64,7 +61,7 @@ class CreateSubCommentCommandTest : BehaviorSpec() {
                 )
 
                 val response = createSubComment.execute(user, request)
-                val result = idConverter.decode(response.id)
+                val result = IdConverter.convert(response.id)
 
                 Then("Long 형태의 id를 반환받을 수 있다.") {
                     result shouldNotBe null

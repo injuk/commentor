@@ -30,9 +30,6 @@ class ListCommentsQueryTest : BehaviorSpec() {
     @Autowired
     private lateinit var listSubComments: ListSubCommentsUseCase
 
-    @Autowired
-    private lateinit var idConverter: IdConverter
-
     init {
         Given("임의의 사용자가 준비되었을 때") {
             val user = User.builder()
@@ -94,7 +91,7 @@ class ListCommentsQueryTest : BehaviorSpec() {
 
                         parentComments.all {
                             val subCommentsPagination = listSubComments.execute(user, ListCommentsRequest(
-                                parentId = idConverter.decode(it.id)!!
+                                parentId = IdConverter.convert(it.id)!!
                             ))
                             subCommentsPagination.data.results.isNotEmpty()
                         } shouldBe true
