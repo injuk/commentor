@@ -1,22 +1,23 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "2.7.9"
-    id("io.spring.dependency-management") version "1.0.15.RELEASE"
-    kotlin("jvm") version "1.6.21"
-    kotlin("plugin.spring") version "1.6.21"
+    val kotlinVersion = "1.9.0"
 
-    id("org.openapi.generator") version "5.3.1"
-    id("nu.studer.jooq") version "6.0.1"
+    id("org.springframework.boot") version "3.1.5"
+    id("io.spring.dependency-management") version "1.1.3"
+
+    kotlin("jvm") version kotlinVersion
+    kotlin("plugin.spring") version kotlinVersion
+    kotlin("kapt") version kotlinVersion
+
+    id("org.openapi.generator") version "6.6.0"
+    id("nu.studer.jooq") version "8.2.1"
 
     id("io.kotest") version "0.4.10"
 }
 
 group = "ga.injuk"
-version = "1.0.0"
-
-val kotestVersion = "5.5.5"
-val testContainersVersion = "1.18.0"
+version = "1.0.1"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -41,7 +42,9 @@ dependencies {
 
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
+
     // kotest
+    val kotestVersion = "5.5.5"
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion") // optional, for kotest assertions
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion") // required
     testImplementation("io.kotest:kotest-framework-datatest:$kotestVersion") // for data test
@@ -52,17 +55,29 @@ dependencies {
     testImplementation("com.ninja-squad:springmockk:3.1.1")
 
     // test containters
+    val testContainersVersion = "1.18.0"
     testImplementation("org.testcontainers:testcontainers:$testContainersVersion")
     testImplementation("org.testcontainers:postgresql:$testContainersVersion")
 
     // jooq
     implementation("org.springframework.boot:spring-boot-starter-jooq")
-    implementation("org.jooq:jooq:3.16.6")
+    implementation("org.jooq:jooq:3.18.3")
     jooqGenerator("org.postgresql:postgresql:42.3.4")
     runtimeOnly("org.postgresql:postgresql")
 
     implementation("org.hashids:hashids:1.0.3")
     testImplementation("org.flywaydb:flyway-core")
+}
+
+kotlin {
+    sourceSets["main"].apply {
+        kotlin.srcDirs(
+            listOf(
+                "$buildDir/generated/openapi/src/main",
+                "$buildDir/generated/jooq/src/main/jooq",
+            )
+        )
+    }
 }
 
 tasks.withType<KotlinCompile> {
@@ -72,12 +87,25 @@ tasks.withType<KotlinCompile> {
     }
 }
 
+tasks.withType<JavaCompile> {
+    sourceCompatibility = "17"
+    targetCompatibility = "17"
+}
+
 tasks.withType<Test> {
     useJUnitPlatform()
 }
 
 openApiGenerate {
     generatorName.set("kotlin-spring")
+    generateApiDocumentation.set(false)
+    generateModelDocumentation.set(false)
+
+    inputSpec.set("$rootDir/src/main/resources/commentor-api.yml")
+    outputDir.set("$buildDir/generated/openapi/")
+
+    apiPackage.set("ga.injuk.commentor.operations")
+    modelPackage.set("ga.injuk.commentor.models")
 
     configOptions.set(
         mapOf(
@@ -86,22 +114,19 @@ openApiGenerate {
             "enumPropertyNaming" to "UPPERCASE",
             "useBeanValidation" to "true",
             "useTags" to "true",
-            "performBeanValidation" to "true"
+            "annotationLibrary" to "none",
+            "documentationProvider" to "none",
+            "useSpringBoot3" to "true"
         )
     )
 
-    inputSpec.set("$rootDir/src/main/resources/commentor-api.yml")
-    outputDir.set("$buildDir/generated/openapi/")
-
-    apiPackage.set("ga.injuk.commentor.operations")
-    modelPackage.set("ga.injuk.commentor.models")
-
-    generateApiDocumentation.set(false)
-    generateModelDocumentation.set(false)
+    additionalProperties = mapOf(
+        "gradleBuildFile" to "false"
+    )
 }
 
 jooq {
-    version.set("3.15.5")
+    version.set("3.18.6")
     edition.set(nu.studer.gradle.jooq.JooqEdition.OSS)
 
     configurations {
@@ -136,16 +161,5 @@ jooq {
                 }
             }
         }
-    }
-}
-
-kotlin {
-    sourceSets["main"].apply {
-        kotlin.srcDirs(
-            listOf(
-                "$buildDir/generated/openapi/src/main",
-                "$buildDir/generated/jooq/src/main/jooq",
-            )
-        )
     }
 }
