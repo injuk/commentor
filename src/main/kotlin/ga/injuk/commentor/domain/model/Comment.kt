@@ -1,5 +1,6 @@
 package ga.injuk.commentor.domain.model
 
+import ga.injuk.commentor.common.IdConverter
 import java.time.LocalDateTime
 
 data class Comment(
@@ -14,6 +15,9 @@ data class Comment(
 
     val myInteraction: CommentInteractionType? = null,
 ) {
+    val encodedId: String?
+        get() = IdConverter.convert(id)
+
     data class Context(
         val at: LocalDateTime,
         val by: By,

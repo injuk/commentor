@@ -1,15 +1,15 @@
 package ga.injuk.commentor.adapter.out.persistence
 
-import ga.injuk.commentor.adapter.core.exception.InvalidArgumentException
-import ga.injuk.commentor.adapter.core.exception.UncaughtException
-import ga.injuk.commentor.adapter.out.dto.ListCommentsResponse
-import ga.injuk.commentor.adapter.out.dto.GetCommentResponse
+import ga.injuk.commentor.adapter.out.persistence.dataAccess.CommentInteractionsDataAccess
+import ga.injuk.commentor.adapter.out.persistence.dataAccess.CommentsDataAccess
+import ga.injuk.commentor.adapter.out.persistence.mapper.CommentorMapper
+import ga.injuk.commentor.application.core.exception.InvalidArgumentException
+import ga.injuk.commentor.application.core.exception.UncaughtException
 import ga.injuk.commentor.application.port.dto.Pagination
 import ga.injuk.commentor.application.port.dto.request.*
 import ga.injuk.commentor.application.port.out.persistence.*
 import ga.injuk.commentor.common.annotation.Adapter
 import ga.injuk.commentor.domain.User
-import ga.injuk.commentor.domain.model.By
 import ga.injuk.commentor.domain.model.Comment
 import ga.injuk.commentor.domain.model.CommentInteraction
 import ga.injuk.commentor.domain.model.CommentInteractionType
@@ -19,13 +19,19 @@ import org.slf4j.LoggerFactory
 class CommentorPersistenceAdapter(
     private val commentsDataAccess: CommentsDataAccess,
     private val commentInteractionsDataAccess: CommentInteractionsDataAccess,
-): CreateCommentPort, GetCommentPort, ListCommentsPort, ListSubCommentsPort, UpdateCommentPort, DeleteCommentPort, BulkDeleteCommentPort,
-CreateCommentInteractionPort, GetCommentInteractionPort, UpdateCommentInteractionPort, DeleteCommentInteractionPort {
-    private val logger = LoggerFactory.getLogger(this.javaClass)
+
+    private val commentorMapper: CommentorMapper,
+) : CreateCommentPort, GetCommentPort, ListCommentsPort, UpdateCommentPort, DeleteCommentPort,
+    BulkDeleteCommentPort, CreateCommentInteractionPort, GetCommentInteractionPort, UpdateCommentInteractionPort,
+    DeleteCommentInteractionPort {
+
+    companion object {
+        private val logger = LoggerFactory.getLogger(CommentorPersistenceAdapter::class.java)
+    }
 
     override fun create(user: User, request: CreateCommentRequest): Long {
         val (insertId) = commentsDataAccess.insert(user, request)
-        if(insertId == null) {
+        if (insertId == null) {
             throw UncaughtException("failed to create comment resource.")
         }
 
@@ -36,7 +42,7 @@ CreateCommentInteractionPort, GetCommentInteractionPort, UpdateCommentInteractio
         val commentRow = commentsDataAccess.findOne(user, request)
 
         return commentRow?.let { row ->
-            tryConvertToComment(row)
+            commentorMapper.mapToComment(row)
                 .getOrElse {
                     logger.error(it.message)
                     throw UncaughtException("failed to convert comment")
@@ -48,23 +54,7 @@ CreateCommentInteractionPort, GetCommentInteractionPort, UpdateCommentInteractio
         val (commentRows, cursor) = commentsDataAccess.findBy(user, request)
 
         val results = commentRows.map { row ->
-            tryConvertToComment(row).getOrElse {
-                logger.error(it.message)
-                throw UncaughtException("failed to convert comment")
-            }
-        }
-
-        return Pagination(
-            results = results,
-            nextCursor = cursor,
-        )
-    }
-
-    override fun getList(user: User, request: ListSubCommentsRequest): Pagination<Comment> {
-        val (commentRows, cursor) = commentsDataAccess.findBy(user, request)
-
-        val results = commentRows.map { row ->
-            tryConvertToComment(row).getOrElse {
+            commentorMapper.mapToComment(row).getOrElse {
                 logger.error(it.message)
                 throw UncaughtException("failed to convert comment")
             }
@@ -96,7 +86,7 @@ CreateCommentInteractionPort, GetCommentInteractionPort, UpdateCommentInteractio
 
     override fun create(user: User, request: CreateCommentInteractionRequest): Long {
         val (insertId) = commentInteractionsDataAccess.insert(user, request)
-        if(insertId == null) {
+        if (insertId == null) {
             throw UncaughtException("failed to create comment interaction resource.")
         }
 
@@ -108,9 +98,10 @@ CreateCommentInteractionPort, GetCommentInteractionPort, UpdateCommentInteractio
 
         return commentInteractionRow?.let {
             CommentInteraction(
-                id = it?.id ?: throw InvalidArgumentException("interaction id cannot be null"),
+                id = it.id ?: throw InvalidArgumentException("interaction id cannot be null"),
                 commentId = it.commentId ?: throw InvalidArgumentException("commentId cannot be null"),
-                type = CommentInteractionType.from(it.type) ?: throw InvalidArgumentException("interaction type cannot be null"),
+                type = CommentInteractionType.from(it.type)
+                    ?: throw InvalidArgumentException("interaction type cannot be null"),
                 userId = it.userId ?: throw InvalidArgumentException("userId cannot be null"),
             )
         }
@@ -126,54 +117,5 @@ CreateCommentInteractionPort, GetCommentInteractionPort, UpdateCommentInteractio
         val affectedRows = commentInteractionsDataAccess.delete(user, request)
 
         return affectedRows.count ?: throw UncaughtException("failed to delete comment interaction")
-    }
-
-    private fun <T> tryConvertToComment(comment: T) = runCatching {
-        when(comment) {
-            is GetCommentResponse -> Comment(
-                id = comment.id ?: throw InvalidArgumentException("id cannot be null"),
-                parts = comment.parts ?: throw InvalidArgumentException("parts cannot be null"),
-                isDeleted = comment.isDeleted ?: throw InvalidArgumentException("isDeleted cannot be null"),
-                hasSubComments = comment.hasSubComments ?: throw InvalidArgumentException("hasSubComments cannot be null"),
-                likeCount = comment.likeCount ?: throw InvalidArgumentException("likeCount cannot be null"),
-                dislikeCount = comment.dislikeCount ?: throw InvalidArgumentException("dislikeCount cannot be null"),
-                created = Comment.Context(
-                    at = comment.createdAt ?: throw InvalidArgumentException("createdAt cannot be null"),
-                    by = By(
-                        id = comment.createdBy ?: throw InvalidArgumentException("createdById cannot be null"),
-                    ),
-                ),
-                updated = Comment.Context(
-                    at = comment.updatedAt ?: throw InvalidArgumentException("updatedAt cannot be null"),
-                    by = By(
-                        id = comment.updatedBy ?: throw InvalidArgumentException("updatedById cannot be null"),
-                    ),
-                ),
-            )
-
-            is ListCommentsResponse.Row -> Comment(
-                id = comment.id ?: throw InvalidArgumentException("id cannot be null"),
-                parts = comment.parts ?: throw InvalidArgumentException("parts cannot be null"),
-                isDeleted = comment.isDeleted ?: throw InvalidArgumentException("isDeleted cannot be null"),
-                hasSubComments = comment.hasSubComments ?: throw InvalidArgumentException("hasSubComments cannot be null"),
-                myInteraction = CommentInteractionType.from(comment.myInteractionType),
-                likeCount = comment.likeCount ?: throw InvalidArgumentException("likeCount cannot be null"),
-                dislikeCount = comment.dislikeCount ?: throw InvalidArgumentException("dislikeCount cannot be null"),
-                created = Comment.Context(
-                    at = comment.createdAt ?: throw InvalidArgumentException("createdAt cannot be null"),
-                    by = By(
-                        id = comment.createdBy ?: throw InvalidArgumentException("createdById cannot be null"),
-                    ),
-                ),
-                updated = Comment.Context(
-                    at = comment.updatedAt ?: throw InvalidArgumentException("updatedAt cannot be null"),
-                    by = By(
-                        id = comment.updatedBy ?: throw InvalidArgumentException("updatedById cannot be null"),
-                    ),
-                ),
-            )
-
-            else -> throw InvalidArgumentException("invalid instance")
-        }
     }
 }
