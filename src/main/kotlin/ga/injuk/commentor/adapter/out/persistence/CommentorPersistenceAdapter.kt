@@ -24,7 +24,10 @@ class CommentorPersistenceAdapter(
 ) : CreateCommentPort, GetCommentPort, ListCommentsPort, UpdateCommentPort, DeleteCommentPort,
     BulkDeleteCommentPort, CreateCommentInteractionPort, GetCommentInteractionPort, UpdateCommentInteractionPort,
     DeleteCommentInteractionPort {
-    private val logger = LoggerFactory.getLogger(this.javaClass)
+
+    companion object {
+        private val logger = LoggerFactory.getLogger(CommentorPersistenceAdapter::class.java)
+    }
 
     override fun create(user: User, request: CreateCommentRequest): Long {
         val (insertId) = commentsDataAccess.insert(user, request)

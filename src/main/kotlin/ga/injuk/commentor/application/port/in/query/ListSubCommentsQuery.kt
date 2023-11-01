@@ -9,7 +9,7 @@ import ga.injuk.commentor.application.port.dto.response.ListCommentsResponse
 import ga.injuk.commentor.application.port.`in`.ListSubCommentsUseCase
 import ga.injuk.commentor.application.port.out.persistence.GetCommentPort
 import ga.injuk.commentor.application.port.out.persistence.ListCommentsPort
-import ga.injuk.commentor.common.Base64Helper
+import ga.injuk.commentor.common.CipherHelper
 import ga.injuk.commentor.domain.User
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -19,8 +19,10 @@ class ListSubCommentsQuery(
     private val getCommentPort: GetCommentPort,
     private val listCommentsPort: ListCommentsPort,
 ) : ListSubCommentsUseCase {
-    // TODO: base64 이외의 방법으로 nextCursor를 암복호화하기
-    private val logger = LoggerFactory.getLogger(this::class.java)
+
+    companion object {
+        private val logger = LoggerFactory.getLogger(ListSubCommentsQuery::class.java)
+    }
 
     override fun execute(user: User, data: ListCommentsRequest): ListCommentsResponse {
         if (data.parentId == null) {
@@ -29,19 +31,20 @@ class ListSubCommentsQuery(
         getCommentPort.get(user, GetCommentRequest(commentId = data.parentId))
             ?: throw ResourceNotFoundException("There is no comment")
 
+        val decodedCursor = CipherHelper.decode(data.nextCursor)
         val (results, nextCursor) = listCommentsPort.getList(
             user = user,
             request = ListCommentsRequest(
-                parentId = data.parentId,
                 limit = data.limit,
+                nextCursor = decodedCursor,
+
+                parentId = data.parentId,
                 sortCondition = data.sortCondition,
-                nextCursor = Base64Helper.decode(data.nextCursor),
             ),
         )
-        logger.info("nextCursor: $nextCursor")
 
-        val encoded = Base64Helper.encode(nextCursor)
-        logger.info("encoded nextCursor: $encoded")
+        val encoded = CipherHelper.encode(nextCursor)
+        logger.info("$nextCursor encoded to $encoded")
 
         return ListCommentsResponse(
             Pagination(
@@ -54,7 +57,7 @@ class ListSubCommentsQuery(
                         }
                     )
                 },
-                nextCursor = Base64Helper.encode(nextCursor),
+                nextCursor = encoded,
             )
         )
     }

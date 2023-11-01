@@ -16,7 +16,6 @@ import ga.injuk.commentor.domain.model.CommentDomain
 import ga.injuk.commentor.domain.model.CommentInteractionType
 import ga.injuk.commentor.models.*
 import ga.injuk.commentor.operations.CommentApi
-import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
 
@@ -31,8 +30,6 @@ class CommentorController(
     private val bulkDeleteComments: BulkDeleteCommentUseCase,
     private val actionComment: ActionCommentUseCase,
 ) : CommentApi {
-    private val logger = LoggerFactory.getLogger(this.javaClass)
-
     override fun createComment(
         authorization: String,
         projectId: String,
