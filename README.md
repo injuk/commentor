@@ -3,7 +3,7 @@
 - 사실 댓글 기능을 만들어보고 싶은건 아니고, 코프링 써보고 싶어서 적당한 주제를 선정하였음
     - 때문에 인증은 안붙일 예정
 ### 회고
-- 작성 예정
+- [d. Commentor 회고](https://github.com/injuk/zettelkasten/blob/master/4.Archive/Projects/injuk-commentor/d.%20Commentor%20%ED%9A%8C%EA%B3%A0.md)
 
 ### 목표
 - [x] 헥사고널 아키텍쳐 적용해보기
