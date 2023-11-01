@@ -20,6 +20,11 @@ create table "my_test_org".comments
     primary key (id)
 );
 
+create index idx_1 on "my_test_org".comments (parent_id);
+create index idx_2 on "my_test_org".comments (project_id, domain, resource_id);
+create index idx_3 on "my_test_org".comments (created_at, id);
+create index idx_4 on "my_test_org".comments (updated_at, id);
+
 create table "my_test_org".comment_interactions
 (
     id         bigint generated always as identity,
