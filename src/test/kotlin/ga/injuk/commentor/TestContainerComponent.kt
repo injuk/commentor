@@ -1,8 +1,8 @@
 package ga.injuk.commentor
 
+import jakarta.annotation.PreDestroy
 import org.springframework.stereotype.Component
 import org.testcontainers.containers.PostgreSQLContainer
-import javax.annotation.PreDestroy
 
 @Component
 class TestContainerComponent {
@@ -19,6 +19,7 @@ class TestContainerComponent {
             start()
         }
     }
+
     @PreDestroy
     fun stop() {
         CONTAINER.stop()
